@@ -43,3 +43,7 @@ Before about 1989, House records (and many early Senate records) give every memb
 When the successor's start date is recorded, the predecessor's service is cut off on that day. When it isn't, the seat shows one member and the
 tooltip lists the others who held it during that Congress. Members recorded as starting when the first session convened are counted from the day the
 Congress legally began. Before 1840, “Republican” in the data means the Jeffersonian Democratic-Republicans.
+
+## License
+
+The code is released under the [MIT License](LICENSE). The legislator data and photos belong to their respective projects and are not covered by it.
