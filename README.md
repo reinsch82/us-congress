@@ -47,8 +47,8 @@ It rebuilds the snapshot and commits it only when the upstream data changed, the
 If the new data fails the checks, the run deploys the previous snapshot and is marked as failed.
 
 GitHub Pages must use **GitHub Actions** as its source (**Settings → Pages → Build and deployment**).
-GitHub turns off scheduled workflows in public repositories after 60 days without activity. Snapshot commits usually prevent that.
-If it happens anyway, re-enable the workflow on the Actions tab. Until then, the page still offers the live data.
+GitHub turns off scheduled workflows in public repositories after 60 days without activity. The upstream files have gone longer than that
+without changes (124 days in 2023), so after 45 days without a commit the workflow pushes an empty keep-alive commit.
 
 ## Files
 
