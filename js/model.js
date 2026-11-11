@@ -80,10 +80,10 @@ function seatKey(chamber, t) {
 
 function seatLabel(chamber, state, key) {
   const part = key.split('|')[1];
-  if (chamber === 'sen') return `${STATE_NAMES[state] || state} · Class ${part.slice(1)}`;
-  if (chamber === 'del') return `${STATE_NAMES[state] || state} · Delegate`;
-  if (part.startsWith('GT') || part === '0') return `${STATE_NAMES[state] || state} · At-large`;
-  return `${STATE_NAMES[state] || state} · District ${part}`;
+  if (chamber === 'sen') return `${STATE_NAMES[state] || state}, Class ${part.slice(1)}`;
+  if (chamber === 'del') return `${STATE_NAMES[state] || state}, delegate`;
+  if (part.startsWith('GT') || part === '0') return `${STATE_NAMES[state] || state}, at-large`;
+  return `${STATE_NAMES[state] || state}, District ${part}`;
 }
 
 function clipSegments(term) {

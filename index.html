@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Congress Seats Through Time</title>
   <meta name="description" content="Every seat in the US Senate and House of Representatives from 1789 to today, drawn live from the unitedstates/congress-legislators data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 20'%3E%3Cpath d='M2 18a14 14 0 0 1 28 0' fill='none' stroke='%232563c9' stroke-width='4'/%3E%3Cpath d='M9 18a7 7 0 0 1 14 0' fill='none' stroke='%23d0312d' stroke-width='4'/%3E%3C/svg%3E">
 </head>
@@ -26,11 +29,11 @@
   <main id="app" hidden>
     <section class="controls" aria-label="Time controls">
       <div class="when">
-        <div class="date-line">
-          <input type="date" id="date-input" aria-label="Jump to date">
-          <span id="congress-label" class="congress-label"></span>
+        <div>
+          <p id="date-heading" class="date-heading" aria-live="polite"></p>
+          <p id="congress-label" class="congress-label"></p>
         </div>
-        <div id="term-note" class="muted small"></div>
+        <label class="jump">Go to date <input type="date" id="date-input"></label>
       </div>
       <input type="range" id="slider" class="slider" aria-label="Date">
       <div class="steppers">

@@ -226,7 +226,7 @@ function describeOcc(slot, occ) {
     `<div class="name">${esc(p.name)}</div>`,
     `<div class="line">${swatch(party)} ${esc(party)}${caucus && caucus !== party ? ` <span class="muted">(caucuses with ${esc(caucus)}s)</span>` : ''}</div>`,
     `<div>${esc(slot.label)}</div>`,
-    `<div class="muted">In this seat ${fmtShort(occ.iv.s)} – ${until}${occ.iv.how ? ` · ${esc(occ.iv.how.replace('-', ' '))}` : ''}</div>`,
+    `<div class="muted">In this seat ${fmtShort(occ.iv.s)} – ${until}${occ.iv.how ? ` (${esc(occ.iv.how.replace('-', ' '))})` : ''}</div>`,
   ];
   if (occ.iv.also) {
     lines.push(`<div class="muted">Also held this seat during this term: ${occ.iv.also.map((pi) => esc(model.persons[pi].name)).join(', ')}. The source data doesn't record when the seat changed hands.</div>`);
@@ -263,10 +263,10 @@ function majorityText(chamber, entries) {
   if (n >= need) {
     const pure = entries.filter((e) => e.occ && e.occ.seg.party === leader).length;
     const extra = n - pure;
-    return `<strong>${esc(leader)} majority</strong> · ${n} of ${seats}${extra ? ` (incl. ${extra} caucusing)` : ''}`;
+    return `<strong>${esc(leader)} majority</strong> ${n} of ${seats}${extra ? `, incl. ${extra} caucusing` : ''}`;
   }
-  if (chamber === 'sen' && n * 2 === seats) return `<strong>Evenly split</strong> ${n}–${n} · the Vice President breaks ties`;
-  return `<strong>No majority</strong> · largest: ${esc(leader)} ${n} of ${seats}, ${need} needed`;
+  if (chamber === 'sen' && n * 2 === seats) return `<strong>Evenly split</strong> ${n}–${n}, the Vice President breaks ties`;
+  return `<strong>No majority</strong> largest is ${esc(leader)} with ${n} of ${seats}, ${need} needed`;
 }
 
 function renderTally(el, entries) {
@@ -306,7 +306,7 @@ function renderChanges(el, chamber, day) {
   const shown = 12;
   const items = ev.changes.map(changeLine);
   el.innerHTML = `
-    <h3>${heading}${isNewCongress ? ` · ${ordinal(congressOf(ev.day))} Congress begins` : ''}</h3>
+    <h3>${heading}${isNewCongress ? `. The ${ordinal(congressOf(ev.day))} Congress begins.` : ''}</h3>
     ${ev.changes.length > 1 ? `<p class="net">${ev.changes.length} seats changed${netText ? `. Net: ${netText}` : ', no net party change'}. New members are ringed.</p>` : ''}
     <ul>${items.slice(0, shown).join('')}</ul>
     ${items.length > shown ? `<details><summary>Show ${items.length - shown} more</summary><ul>${items.slice(shown).join('')}</ul></details>` : ''}`;
@@ -362,7 +362,7 @@ function renderHemicycle(svgEl, entries, ringed, animate) {
 
   const need = Math.floor(entries.length / 2) + 1;
   svg.selectAll('text.total').data([0]).join('text').attr('class', 'total').attr('y', -8).text(entries.length);
-  svg.selectAll('text.total-sub').data([0]).join('text').attr('class', 'total-sub').attr('y', 1).text(`seats · ${need} for majority`);
+  svg.selectAll('text.total-sub').data([0]).join('text').attr('class', 'total-sub').attr('y', 1).text(`seats, ${need} for a majority`);
   svg.selectAll('line.majority-tick').data([0]).join('line').attr('class', 'majority-tick')
     .attr('x1', 0).attr('x2', 0).attr('y1', -38).attr('y2', -105)
     .attr('vector-effect', 'non-scaling-stroke');
@@ -547,8 +547,8 @@ function render(animate) {
   const startYear = new Date(congressStart(c) * 864e5).getUTCFullYear();
   $('#slider').value = day;
   $('#date-input').value = fromDay(day);
-  $('#congress-label').textContent = `${ordinal(c)} Congress (${startYear}–${startYear + 2})`;
-  $('#term-note').textContent = fmtDate(day);
+  $('#congress-label').textContent = `${ordinal(c)} Congress, ${startYear}–${startYear + 2}`;
+  $('#date-heading').textContent = fmtDate(day);
 
   for (const chamber of CHAMBERS) {
     const root = document.getElementById(chamber);
