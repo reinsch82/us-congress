@@ -2,6 +2,9 @@
 import { buildModel, toDay, fromDay, congressOf, congressStart } from './model.js';
 import { partyInfo } from './parties.js';
 
+// Replaced with the commit ID at deploy time by scripts/stamp-build.sh.
+const BUILD = 'dev';
+
 const REPO = 'unitedstates/congress-legislators';
 const SNAPSHOT_URL = 'data/legislators.json';
 const YAML_BASE = `https://raw.githubusercontent.com/${REPO}/main/`;
@@ -727,7 +730,25 @@ function setupControls() {
 
 // ---------------------------------------------------------------- start
 
+// A browser can hold a cached page from an earlier deploy while fetching this newer
+// script (GitHub Pages lets both be cached for 10 minutes). Reload once to get a
+// matching page instead of running against markup this script doesn't know.
+function checkBuild() {
+  const pageBuild = document.querySelector('meta[name="build"]')?.content;
+  if (pageBuild === BUILD) return true;
+  const key = `reloaded-for-${BUILD}`;
+  try {
+    if (sessionStorage.getItem(key)) return true;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    return true;
+  }
+  location.reload();
+  return false;
+}
+
 async function main() {
+  if (!checkBuild()) return;
   let data;
   try {
     statusEl.textContent = 'Loading legislator data…';

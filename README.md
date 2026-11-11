@@ -46,6 +46,10 @@ The script checks that the data looks sane today (100 Senate seats, 435 House se
 It rebuilds the snapshot and commits it only when the upstream data changed, then deploys the site to GitHub Pages.
 If the new data fails the checks, the run deploys the previous snapshot and is marked as failed.
 
+Before deploying, `scripts/stamp-build.sh` adds the commit ID to the script and stylesheet URLs and to the page itself. That way a browser never
+mixes files from two deploys. GitHub Pages lets browsers cache each file for 10 minutes, and if the page is still an older version,
+the script reloads it once.
+
 GitHub Pages must use **GitHub Actions** as its source (**Settings → Pages → Build and deployment**).
 GitHub turns off scheduled workflows in public repositories after 60 days without activity. The upstream files have gone longer than that
 without changes (124 days in 2023), so after 45 days without a commit the workflow pushes an empty keep-alive commit.
