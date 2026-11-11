@@ -161,8 +161,6 @@ export function buildModel(people, today) {
     persons.push({
       bioguide: p.id.bioguide,
       name: personName(p.name),
-      wikipedia: p.id.wikipedia || null,
-      birthday: p.bio?.birthday || null,
     });
     for (const t of p.terms) {
       let s = toDay(t.start);

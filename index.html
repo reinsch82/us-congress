@@ -91,8 +91,9 @@
 
     <footer class="notes">
       <h3>About the data</h3>
-      <p>The page downloads <code>legislators-historical.yaml</code> and <code>legislators-current.yaml</code> straight from the
-        <code>main</code> branch every time it loads, so it always shows the latest commit. Seats are grouped by state and Senate class or
+      <p>The data comes from <code>legislators-historical.yaml</code> and <code>legislators-current.yaml</code> on the repository's
+        <code>main</code> branch. A daily build saves a trimmed copy with this page. When GitHub has newer data, a link at the top loads it live,
+        and if the copy can't be loaded, the page fetches the live data automatically. Seats are grouped by state and Senate class or
         House district. A seat counts as part of a Congress if anyone held it during that Congress, and it shows as vacant on days nobody held it.</p>
       <p>Before about 1989, House records (and many early Senate records) give a full-Congress span for every member, even when a member
         died or resigned partway through. When a successor's start date is recorded, the predecessor's service is cut off on that day. When it isn't,
@@ -106,7 +107,6 @@
   <div id="seat-tip" class="tooltip seat-tip" hidden></div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

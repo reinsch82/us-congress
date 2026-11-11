@@ -1,0 +1,74 @@
+name: Update data and deploy
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # If the new data fails the sanity checks, keep deploying the last good snapshot
+      # and mark the run as failed at the end.
+      - name: Build data snapshot
+        id: data
+        continue-on-error: true
+        run: node scripts/build-data.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Committing only when the data changed keeps a history of upstream updates.
+      - name: Commit snapshot if changed
+        if: steps.data.outcome == 'success'
+        run: |
+          if [ -n "$(git status --porcelain -- data)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
+            git add data
+            git commit -m "Update legislator data snapshot"
+            git push
+          fi
+
+      - name: Assemble site
+        run: |
+          mkdir _site
+          cp -r index.html .nojekyll css js data _site/
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Report data build failure
+        if: steps.data.outcome == 'failure'
+        run: |
+          echo "::error::The data snapshot was not updated; the previous snapshot was deployed."
+          exit 1

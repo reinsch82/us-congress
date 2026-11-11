@@ -3,8 +3,10 @@ import { buildModel, toDay, fromDay, congressOf, congressStart } from './model.j
 import { partyInfo } from './parties.js';
 
 const REPO = 'unitedstates/congress-legislators';
+const SNAPSHOT_URL = 'data/legislators.json';
 const YAML_BASE = `https://raw.githubusercontent.com/${REPO}/main/`;
 const JSON_BASE = 'https://unitedstates.github.io/congress-legislators/';
+const YAML_LIB = 'https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js';
 const FILES = ['legislators-historical', 'legislators-current'];
 const photoUrl = (id) => `https://unitedstates.github.io/images/congress/225x275/${id}.jpg`;
 const bioguideUrl = (id) => `https://bioguide.congress.gov/search/bio/${id}`;
@@ -13,7 +15,6 @@ const $ = (sel, root = document) => root.querySelector(sel);
 const statusEl = $('#status');
 const today = toDay(new Date().toISOString().slice(0, 10));
 const CHAMBERS = ['sen', 'rep'];
-const CHAMBER_NOUN = { sen: 'senators', rep: 'representatives' };
 
 let model;
 const state = { day: today, playing: null };
@@ -39,34 +40,102 @@ async function fetchText(url, onProgress) {
 
 const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
 
-async function loadPeople() {
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    const el = document.createElement('script');
+    el.src = src;
+    el.onload = resolve;
+    el.onerror = () => reject(new Error(`Couldn't load ${src}`));
+    document.head.append(el);
+  });
+}
+
+// The daily snapshot built by scripts/build-data.mjs and deployed with the page.
+async function loadSnapshot() {
+  const res = await fetch(SNAPSHOT_URL, { cache: 'no-cache' });
+  if (!res.ok) throw new Error(`HTTP ${res.status} for ${SNAPSHOT_URL}`);
+  const { people, sources } = await res.json();
+  return { people, sources };
+}
+
+// Straight from the upstream repository: the raw YAML on main, or its published JSON.
+async function loadLive(report) {
   const received = FILES.map(() => 0);
   const progress = (i) => (n) => {
     received[i] = n;
-    statusEl.textContent = `Downloading legislator data from GitHub… ${(d3.sum(received) / 1e6).toFixed(1)} MB`;
+    report(`Downloading legislator data from GitHub… ${(d3.sum(received) / 1e6).toFixed(1)} MB`);
   };
   try {
-    const texts = await Promise.all(FILES.map((f, i) => fetchText(`${YAML_BASE}${f}.yaml`, progress(i))));
-    statusEl.textContent = 'Parsing YAML…';
+    const [texts] = await Promise.all([
+      Promise.all(FILES.map((f, i) => fetchText(`${YAML_BASE}${f}.yaml`, progress(i)))),
+      window.jsyaml ? null : loadScript(YAML_LIB),
+    ]);
+    report('Parsing YAML…');
     await yieldToBrowser();
-    return { people: texts.flatMap((t) => jsyaml.load(t)), source: 'YAML from the main branch' };
+    return { people: texts.flatMap((t) => jsyaml.load(t)), sources: null, label: 'YAML from the main branch' };
   } catch (err) {
     console.warn('Raw YAML failed, falling back to the published JSON', err);
     const texts = await Promise.all(FILES.map((f, i) => fetchText(`${JSON_BASE}${f}.json`, progress(i))));
-    return { people: texts.flatMap((t) => JSON.parse(t)), source: 'JSON from the gh-pages branch' };
+    return { people: texts.flatMap((t) => JSON.parse(t)), sources: null, label: 'JSON from the gh-pages branch' };
   }
 }
 
-async function showFreshness(source) {
+const fmtCommitDate = (iso) => new Date(iso).toLocaleDateString(undefined, { dateStyle: 'medium' });
+const commitLink = (src) => `<a href="https://github.com/${REPO}/commit/${src.sha}">${fmtCommitDate(src.date)}</a>`;
+
+async function latestUpstream() {
+  return Promise.all(FILES.map(async (f) => {
+    const res = await fetch(`https://api.github.com/repos/${REPO}/commits?sha=main&path=${f}.yaml&per_page=1`);
+    if (!res.ok) throw new Error(`GitHub API ${res.status}`);
+    const [c] = await res.json();
+    return { sha: c.sha, date: c.commit.committer.date };
+  }));
+}
+
+// Says where the data came from and, for the snapshot, offers newer data if there is any.
+async function showFreshness({ sources, label }) {
   const el = $('#freshness');
-  el.textContent = `Loaded ${source}.`;
+  if (!sources) {
+    el.textContent = `Loaded live ${label}.`;
+    return;
+  }
+  const newest = FILES.map((f) => sources[f]).sort((a, b) => b.date.localeCompare(a.date))[0];
+  el.innerHTML = `Daily snapshot, data last changed ${commitLink(newest)}.`;
+  let upstream;
   try {
-    const res = await fetch(`https://api.github.com/repos/${REPO}/commits?sha=main&per_page=1`);
-    if (!res.ok) return;
-    const [commit] = await res.json();
-    const when = new Date(commit.commit.committer.date);
-    el.innerHTML = `Loaded ${source}, last commit <a href="${commit.html_url}">${when.toLocaleDateString(undefined, { dateStyle: 'medium' })}</a>.`;
-  } catch { /* the GitHub API is rate-limited; the date is a nicety */ }
+    upstream = await latestUpstream();
+  } catch {
+    // The GitHub API is rate-limited; without it we can't tell, so just offer the live data.
+    el.insertAdjacentHTML('beforeend', ' <button type="button" class="link-button" id="load-live">Load live data</button>');
+    $('#load-live').addEventListener('click', reloadLive);
+    return;
+  }
+  if (FILES.some((f, i) => upstream[i].sha !== sources[f].sha)) {
+    el.insertAdjacentHTML('beforeend', ' <strong>Newer data is available.</strong> <button type="button" class="link-button" id="load-live">Load it now</button>');
+    $('#load-live').addEventListener('click', reloadLive);
+  }
+}
+
+async function reloadLive() {
+  stopPlaying();
+  const el = $('#freshness');
+  try {
+    const data = await loadLive((msg) => { el.textContent = msg; });
+    el.textContent = 'Building seat timelines…';
+    await yieldToBrowser();
+    useData(data.people);
+    renderTimeline();
+    render(false);
+    showFreshness(data);
+  } catch (err) {
+    console.error(err);
+    el.textContent = `Couldn't load live data: ${err.message}`;
+  }
+}
+
+function useData(people) {
+  model = buildModel(people, today);
+  for (const chamber of CHAMBERS) timeline.series[chamber] = buildSeries(chamber);
 }
 
 // ---------------------------------------------------------------- helpers
@@ -585,28 +654,35 @@ function setupControls() {
 // ---------------------------------------------------------------- start
 
 async function main() {
+  let data;
   try {
-    const { people, source } = await loadPeople();
-    statusEl.textContent = `Building seat timelines for ${people.length.toLocaleString()} legislators…`;
-    await yieldToBrowser();
-    model = buildModel(people, today);
-    for (const chamber of CHAMBERS) timeline.series[chamber] = buildSeries(chamber);
-
-    const h = location.hash.slice(1);
-    state.day = /^\d{4}-\d{2}-\d{2}$/.test(h) ? Math.min(today, Math.max(model.firstDay, toDay(h))) : today;
-
-    statusEl.hidden = true;
-    $('#app').hidden = false;
-    setupControls();
-    setupTimelineInteraction();
-    renderTimeline();
-    render(false);
-    showFreshness(source);
+    statusEl.textContent = 'Loading legislator data…';
+    data = await loadSnapshot();
   } catch (err) {
-    console.error(err);
-    statusEl.classList.add('error');
-    statusEl.textContent = `Couldn't load the data: ${err.message}`;
+    console.warn('No snapshot, loading live data instead', err);
+    try {
+      data = await loadLive((msg) => { statusEl.textContent = msg; });
+    } catch (liveErr) {
+      console.error(liveErr);
+      statusEl.classList.add('error');
+      statusEl.textContent = `Couldn't load the data: ${liveErr.message}`;
+      return;
+    }
   }
+  statusEl.textContent = `Building seat timelines for ${data.people.length.toLocaleString()} legislators…`;
+  await yieldToBrowser();
+  useData(data.people);
+
+  const h = location.hash.slice(1);
+  state.day = /^\d{4}-\d{2}-\d{2}$/.test(h) ? Math.min(today, Math.max(model.firstDay, toDay(h))) : today;
+
+  statusEl.hidden = true;
+  $('#app').hidden = false;
+  setupControls();
+  setupTimelineInteraction();
+  renderTimeline();
+  render(false);
+  showFreshness(data);
 }
 
 main();

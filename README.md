@@ -2,10 +2,14 @@
 
 A static page that draws every seat in the US Senate and House of Representatives on any day from 1789 to today, with one dot per member, colored by party.
 
-When the page loads, it downloads `legislators-historical.yaml` and `legislators-current.yaml` from the `main` branch of
-[unitedstates/congress-legislators](https://github.com/unitedstates/congress-legislators), so it always shows the latest data.
-There is no build step and no copy of the data in this repository. If the raw files can't be fetched, the page falls back to the JSON copies
-on that project's GitHub Pages site. Member photos come from [unitedstates/images](https://github.com/unitedstates/images).
+The data comes from `legislators-historical.yaml` and `legislators-current.yaml` on the `main` branch of
+[unitedstates/congress-legislators](https://github.com/unitedstates/congress-legislators). A daily GitHub Actions job saves a trimmed snapshot
+of it as `data/legislators.json` and deploys it with the page, so visitors only download about 450 KB from this site.
+
+- On load, the page asks the GitHub API which upstream commit each file is at. If the snapshot is older, a link at the top loads the live data.
+- If the snapshot can't be loaded, the page fetches the raw YAML from GitHub directly, or failing that the JSON copies on the project's GitHub Pages site.
+
+Member photos come from [unitedstates/images](https://github.com/unitedstates/images).
 
 ## Features
 
@@ -27,15 +31,31 @@ python3 -m http.server 8000
 # open http://localhost:8000
 ```
 
-## Publishing on GitHub Pages
+To refresh the snapshot by hand:
 
-In the repository settings, under **Pages → Build and deployment**, choose **Deploy from a branch**, then select `main` and `/ (root)`.
+```sh
+npm ci
+npm run build-data
+```
+
+The script checks that the data looks sane today (100 Senate seats, 435 House seats, nearly all of them filled) and leaves the snapshot alone if it doesn't.
+
+## Deployment
+
+`.github/workflows/deploy.yml` runs every day at 06:17 UTC, on every push to `main`, and on demand (**Actions → Update data and deploy → Run workflow**).
+It rebuilds the snapshot and commits it only when the upstream data changed, then deploys the site to GitHub Pages.
+If the new data fails the checks, the run deploys the previous snapshot and is marked as failed.
+
+GitHub Pages must use **GitHub Actions** as its source (**Settings → Pages → Build and deployment**).
+GitHub turns off scheduled workflows in public repositories after 60 days without activity. Snapshot commits usually prevent that.
+If it happens anyway, re-enable the workflow on the Actions tab. Until then, the page still offers the live data.
 
 ## Files
 
 - `js/model.js` turns person records into per-seat timelines and change events. It has no DOM code, so it also runs under Node.
 - `js/parties.js` holds party name normalisation, colors and seating order.
 - `js/app.js` handles loading, rendering (D3) and controls.
+- `scripts/build-data.mjs` builds the daily snapshot.
 
 ## Data caveats
 
