@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Congress Seats Through Time</title>
+  <meta name="description" content="Every seat in the US Senate and House of Representatives from 1789 to today, drawn live from the unitedstates/congress-legislators data.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 20'%3E%3Cpath d='M2 18a14 14 0 0 1 28 0' fill='none' stroke='%232563c9' stroke-width='4'/%3E%3Cpath d='M9 18a7 7 0 0 1 14 0' fill='none' stroke='%23d0312d' stroke-width='4'/%3E%3C/svg%3E">
+</head>
+<body>
+  <header class="page-head">
+    <div>
+      <h1>Congress Seats Through Time</h1>
+      <p class="sub">Every seat in the Senate and the House from 1789 to today. Each dot is one member, colored by party.</p>
+    </div>
+    <p class="source" id="source">
+      Data: <a href="https://github.com/unitedstates/congress-legislators">unitedstates/congress-legislators</a>,
+      photos: <a href="https://github.com/unitedstates/images">unitedstates/images</a>.
+      <span id="freshness"></span>
+    </p>
+  </header>
+
+  <div id="status" class="status" role="status">Loading…</div>
+
+  <main id="app" hidden>
+    <section class="controls" aria-label="Time controls">
+      <div class="when">
+        <div class="date-line">
+          <input type="date" id="date-input" aria-label="Jump to date">
+          <span id="congress-label" class="congress-label"></span>
+        </div>
+        <div id="term-note" class="muted small"></div>
+      </div>
+      <input type="range" id="slider" class="slider" aria-label="Date">
+      <div class="steppers">
+        <div class="step-group" role="group" aria-label="Congress">
+          <span class="step-label">Congress</span>
+          <button data-step="congress" data-dir="-1" title="Start of previous Congress (PageUp)">◀</button>
+          <button data-step="congress" data-dir="1" title="Start of next Congress (PageDown)">▶</button>
+        </div>
+        <div class="step-group" role="group" aria-label="Senate changes">
+          <span class="step-label">Senate change</span>
+          <button data-step="sen" data-dir="-1">◀</button>
+          <button data-step="sen" data-dir="1">▶</button>
+        </div>
+        <div class="step-group" role="group" aria-label="House changes">
+          <span class="step-label">House change</span>
+          <button data-step="rep" data-dir="-1">◀</button>
+          <button data-step="rep" data-dir="1">▶</button>
+        </div>
+        <div class="step-group" role="group" aria-label="Any change">
+          <span class="step-label">Any change</span>
+          <button data-step="any" data-dir="-1" title="Previous change (←)">◀</button>
+          <button data-step="any" data-dir="1" title="Next change (→)">▶</button>
+        </div>
+        <button id="play" class="play" aria-pressed="false" title="Play through every change (Space)">▶ Play</button>
+        <label class="toggle"><input type="checkbox" id="show-delegates"> Non-voting delegates</label>
+      </div>
+    </section>
+
+    <section class="timeline-wrap" aria-label="Party share over time">
+      <svg id="timeline" class="timeline" role="img" aria-label="Share of seats by party over time, Senate above, House below. Click to jump to a date."></svg>
+      <div id="timeline-tip" class="tooltip" hidden></div>
+    </section>
+
+    <div class="chambers">
+      <section class="chamber" id="sen" aria-labelledby="sen-title">
+        <div class="chamber-head">
+          <h2 id="sen-title">Senate</h2>
+          <div class="majority" data-role="majority"></div>
+        </div>
+        <div class="tally" data-role="tally"></div>
+        <svg class="hemicycle" data-role="hemicycle" viewBox="-106 -106 212 114" role="img"></svg>
+        <div class="changes" data-role="changes"></div>
+        <details class="roster" data-role="roster"><summary>List all senators on this date</summary><div></div></details>
+      </section>
+
+      <section class="chamber" id="rep" aria-labelledby="rep-title">
+        <div class="chamber-head">
+          <h2 id="rep-title">House of Representatives</h2>
+          <div class="majority" data-role="majority"></div>
+        </div>
+        <div class="tally" data-role="tally"></div>
+        <svg class="hemicycle" data-role="hemicycle" viewBox="-106 -106 212 114" role="img"></svg>
+        <div class="delegates" id="delegates" hidden></div>
+        <div class="changes" data-role="changes"></div>
+        <details class="roster" data-role="roster"><summary>List all representatives on this date</summary><div></div></details>
+      </section>
+    </div>
+
+    <footer class="notes">
+      <h3>About the data</h3>
+      <p>The page downloads <code>legislators-historical.yaml</code> and <code>legislators-current.yaml</code> straight from the
+        <code>main</code> branch every time it loads, so it always shows the latest commit. Seats are grouped by state and Senate class or
+        House district. A seat counts as part of a Congress if anyone held it during that Congress, and it shows as vacant on days nobody held it.</p>
+      <p>Before about 1989, House records (and many early Senate records) give a full-Congress span for every member, even when a member
+        died or resigned partway through. When a successor's start date is recorded, the predecessor's service is cut off on that day. When it isn't,
+        the seat shows one member and the tooltip names the others who also held it during that Congress. Members whose service began
+        when the first session convened are counted from the day the Congress began. Before 1840, “Republican” in the data means the Jeffersonian
+        Democratic-Republicans.</p>
+      <p>Keyboard: ← → step through changes, PageUp/PageDown through Congresses, Space plays. Click a seat to open the member's Bioguide entry.</p>
+    </footer>
+  </main>
+
+  <div id="seat-tip" class="tooltip seat-tip" hidden></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
