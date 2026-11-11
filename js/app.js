@@ -218,7 +218,8 @@ function hemicycleLayout(n) {
 const seatTip = $('#seat-tip');
 
 function describeOcc(slot, occ) {
-  if (!occ) return `<div class="name">Vacant</div><div class="muted">${esc(slot.label)}</div>`;
+  const hint = '<div class="hint">Click for seat history</div>';
+  if (!occ) return `<div class="name">Vacant</div><div class="muted">${esc(slot.label)}</div>${hint}`;
   const p = model.persons[occ.iv.pi];
   const { party, caucus } = occ.seg;
   const until = occ.iv.e > today ? `term ends ${fmtShort(occ.iv.e)}` : fmtShort(occ.iv.e);
@@ -231,7 +232,7 @@ function describeOcc(slot, occ) {
   if (occ.iv.also) {
     lines.push(`<div class="muted">Also held this seat during this term: ${occ.iv.also.map((pi) => esc(model.persons[pi].name)).join(', ')}. The source data doesn't record when the seat changed hands.</div>`);
   }
-  return `<img alt="" src="${photoUrl(p.bioguide)}" onerror="this.remove()">${lines.join('')}`;
+  return `<img alt="" src="${photoUrl(p.bioguide)}" onerror="this.remove()">${lines.join('')}${hint}`;
 }
 
 function showSeatTip(evt, slot, occ) {
@@ -246,6 +247,78 @@ function showSeatTip(evt, slot, occ) {
   seatTip.style.top = `${Math.max(8, y)}px`;
 }
 const hideSeatTip = () => { seatTip.hidden = true; };
+
+// ---------------------------------------------------------------- seat history
+
+const historyDialog = $('#seat-history');
+
+function partiesText(iv) {
+  const names = [];
+  for (const g of iv.segs) if (names[names.length - 1] !== g.party) names.push(g.party);
+  return names.map((p, i) => `${i ? ', then ' : ''}${swatch(p)} ${esc(p)}`).join('');
+}
+
+// A member's consecutive terms in a seat, merged into one stretch of service.
+function servicePeriods(slot) {
+  const out = [];
+  for (const iv of slot.ivs) {
+    const last = out[out.length - 1];
+    if (last && last.pi === iv.pi && iv.s - last.e <= 31) {
+      last.e = iv.e;
+      last.terms++;
+      last.segs = [...last.segs, ...iv.segs];
+      if (iv.also) last.also = [...(last.also || []), ...iv.also];
+    } else {
+      out.push({ ...iv, terms: 1 });
+    }
+  }
+  return out;
+}
+
+// Everyone who held a seat, newest first. Dates are buttons that move the charts there.
+function openSeatHistory(slot) {
+  hideSeatTip();
+  const ivs = servicePeriods(slot).reverse();
+  const people = new Set(ivs.flatMap((iv) => [iv.pi, ...(iv.also || [])]));
+  const first = new Date(slot.ivs[0].s * 864e5).getUTCFullYear();
+  const isHouseDistrict = slot.chamber === 'rep' && /\|\d+$/.test(slot.key) && !slot.key.endsWith('|0');
+  $('h2', historyDialog).textContent = slot.label;
+  $('[data-role="summary"]', historyDialog).textContent =
+    `${people.size} ${people.size === 1 ? 'member has' : 'members have'} held this seat since ${first}.`
+    + (isHouseDistrict ? ' District lines are redrawn after every census, so earlier members represented different areas under the same number.' : '');
+  $('ol', historyDialog).innerHTML = ivs.map((iv) => {
+    const p = model.persons[iv.pi];
+    const current = iv.s <= state.day && state.day < iv.e;
+    const until = iv.e > today ? 'today' : fmtShort(iv.e);
+    return `<li${current ? ' class="current" aria-current="true"' : ''}>
+      <div class="who"><a href="${bioguideUrl(p.bioguide)}" target="_blank" rel="noopener">${esc(p.name)}</a></div>
+      <div class="party">${partiesText(iv)}</div>
+      <div class="term"><button type="button" class="link-button" data-day="${iv.s}">${fmtShort(iv.s)} – ${until}</button> <span class="muted">${[iv.terms > 1 ? `${iv.terms} terms` : '', iv.how ? iv.how.replace('-', ' ') : ''].filter(Boolean).join(', ')}</span></div>
+      ${iv.also ? `<div class="muted also">Also held the seat during this term, exact dates not recorded: ${iv.also.map((pi) => `<a href="${bioguideUrl(model.persons[pi].bioguide)}" target="_blank" rel="noopener">${esc(model.persons[pi].name)}</a>`).join(', ')}</div>` : ''}
+    </li>`;
+  }).join('');
+  if (!historyDialog.open) historyDialog.showModal();
+  ($('li.current', historyDialog) || $('li', historyDialog))?.scrollIntoView({ block: 'center' });
+}
+
+function setupSeatHistory() {
+  $('[data-role="close"]', historyDialog).addEventListener('click', () => historyDialog.close());
+  // A click on the backdrop lands on the dialog element itself.
+  historyDialog.addEventListener('click', (evt) => { if (evt.target === historyDialog) historyDialog.close(); });
+  historyDialog.addEventListener('click', (evt) => {
+    const btn = evt.target.closest('button[data-day]');
+    if (!btn) return;
+    stopPlaying();
+    // Midway into the term, so the chart shows this member rather than the handover day.
+    setDay(Number(btn.dataset.day) + 1);
+    historyDialog.close();
+  });
+  // Seat list rows and change lists open the history of their seat.
+  document.addEventListener('click', (evt) => {
+    const el = evt.target.closest('[data-history]');
+    if (el && !evt.target.closest('a')) openSeatHistory(model.slots[Number(el.dataset.history)]);
+  });
+}
 
 // ---------------------------------------------------------------- chamber rendering
 
@@ -286,7 +359,7 @@ function changeLine(c) {
   else if (before && after) text = `${who(after)} succeeded ${who(before)}`;
   else if (after) text = `${who(after)} took the seat${after.iv.how === 'appointment' ? ' by appointment' : after.iv.how === 'special-election' ? ' after a special election' : ''}`;
   else text = `${who(before)} left; seat vacant`;
-  return `<li data-slot="${c.slot.id}">${swatch(partyOf(after))}<span>${text} ${seat}</span></li>`;
+  return `<li data-slot="${c.slot.id}" data-history="${c.slot.id}">${swatch(partyOf(after))}<span>${text} ${seat}</span></li>`;
 }
 
 function renderChanges(el, chamber, day) {
@@ -318,7 +391,7 @@ function renderRoster(details, entries, chamber) {
   const rows = entries.slice().sort((a, b) => a.slot.state.localeCompare(b.slot.state) || a.slot.key.localeCompare(b.slot.key, undefined, { numeric: true }));
   $('div', details).innerHTML = `<div class="table-scroll"><table>
     <thead><tr><th>Seat</th><th>${chamber === 'sen' ? 'Senator' : 'Representative'}</th><th>Party</th></tr></thead>
-    <tbody>${rows.map(({ slot, occ }) => `<tr><td>${esc(slot.label)}</td><td>${occ ? esc(personName(occ)) : '<span class="muted">Vacant</span>'}</td><td>${occ ? `${swatch(occ.seg.party)} ${esc(occ.seg.party)}` : ''}</td></tr>`).join('')}</tbody>
+    <tbody>${rows.map(({ slot, occ }) => `<tr><td><button type="button" class="link-button" data-history="${slot.id}">${esc(slot.label)}</button></td><td>${occ ? esc(personName(occ)) : '<span class="muted">Vacant</span>'}</td><td>${occ ? `${swatch(occ.seg.party)} ${esc(occ.seg.party)}` : ''}</td></tr>`).join('')}</tbody>
   </table></div>`;
 }
 
@@ -345,7 +418,7 @@ function renderHemicycle(svgEl, entries, ringed, animate) {
     .attr('stroke-width', (d) => (d.occ ? 0 : dot * 0.25))
     .on('pointerenter pointermove', (evt, d) => showSeatTip(evt, d.slot, d.occ))
     .on('pointerleave', hideSeatTip)
-    .on('click', (evt, d) => { if (d.occ) window.open(bioguideUrl(model.persons[d.occ.iv.pi].bioguide), '_blank', 'noopener'); })
+    .on('click', (evt, d) => openSeatHistory(d.slot))
     .transition(t)
     .attr('cx', (d) => d.pos.x).attr('cy', (d) => d.pos.y)
     .attr('r', (d) => (d.occ ? dot : dot * 0.85))
@@ -386,6 +459,7 @@ function renderDelegates(day) {
     d.addEventListener('pointerenter', (evt) => showSeatTip(evt, e.slot, e.occ));
     d.addEventListener('pointermove', (evt) => showSeatTip(evt, e.slot, e.occ));
     d.addEventListener('pointerleave', hideSeatTip);
+    d.addEventListener('click', () => openSeatHistory(e.slot));
     el.append(d);
   }
 }
@@ -680,6 +754,7 @@ async function main() {
   $('#app').hidden = false;
   setupControls();
   setupTimelineInteraction();
+  setupSeatHistory();
   renderTimeline();
   render(false);
   showFreshness(data);

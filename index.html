@@ -103,11 +103,20 @@
         the seat shows one member and the tooltip names the others who also held it during that Congress. Members whose service began
         when the first session convened are counted from the day the Congress began. Before 1840, “Republican” in the data means the Jeffersonian
         Democratic-Republicans.</p>
-      <p>Keyboard: ← → step through changes, PageUp/PageDown through Congresses, Space plays. Click a seat to open the member's Bioguide entry.</p>
+      <p>Keyboard: ← → step through changes, PageUp/PageDown through Congresses, Space plays. Click a seat to see everyone who has held it.</p>
     </footer>
   </main>
 
   <div id="seat-tip" class="tooltip seat-tip" hidden></div>
+
+  <dialog id="seat-history" class="seat-history" aria-labelledby="seat-history-title">
+    <div class="history-head">
+      <h2 id="seat-history-title"></h2>
+      <button type="button" data-role="close" aria-label="Close seat history">✕</button>
+    </div>
+    <p class="muted" data-role="summary"></p>
+    <ol></ol>
+  </dialog>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
   <script type="module" src="js/app.js"></script>
