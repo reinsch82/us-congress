@@ -152,22 +152,32 @@ function resolveMultiSeat(terms) {
   return lanes;
 }
 
-export function buildModel(people, today) {
+// historical and current are the person lists of legislators-historical.yaml and
+// legislators-current.yaml.
+export function buildModel({ historical, current }, today) {
   const persons = [];
   const raw = [];
 
-  for (const p of people) {
+  for (const [p, serving] of [...historical.map((p) => [p, false]), ...current.map((p) => [p, true])]) {
     const pi = persons.length;
     persons.push({
       bioguide: p.id.bioguide,
       name: personName(p.name),
     });
-    for (const t of p.terms) {
+    p.terms.forEach((t, ti) => {
       let s = toDay(t.start);
       let e = toDay(t.end);
       // Terms that end the day before a new Congress convenes end with that Congress.
       if (congressStart(congressOf(e + 1)) === e + 1) e += 1;
-      if (e <= s) continue;
+      // Everyone in the current file is serving today. A recorded end date can already
+      // have passed: an appointee's term "ends" on the special election but runs until the
+      // winner is sworn in, and new Congresses start before the data catches up.
+      let recordedEnd = null;
+      if (serving && ti === p.terms.length - 1 && e <= today) {
+        recordedEnd = e;
+        e = today + 1;
+      }
+      if (e <= s) return;
       const chamber = chamberOf(t, s);
       const { key, multi } = seatKey(chamber, t);
       const segs = (t.party_affiliations?.length ? t.party_affiliations : [{ start: t.start, end: t.end, party: t.party }])
@@ -180,8 +190,9 @@ export function buildModel(people, today) {
         pi, s, e, chamber, key, multi, state: t.state, segs,
         party0: normaliseParty(t.party, s, FIRST_GOP_DAY),
         how: t.how || null,
+        recordedEnd,
       });
-    }
+    });
   }
 
   // Old records start members on the day the first session convened, not the day the
@@ -226,7 +237,7 @@ export function buildModel(people, today) {
         chamber, state,
         label: seatLabel(chamber, state, key) + (lanes.length > 1 ? ` (seat ${i + 1})` : ''),
         admitted: STATEHOOD[state] ?? -Infinity,
-        ivs: ivs.map(({ pi, s, e, segs, how, also }) => ({ pi, s, e, segs, how, also: also || null })),
+        ivs: ivs.map(({ pi, s, e, segs, how, also, recordedEnd }) => ({ pi, s, e, segs, how, also: also || null, recordedEnd })),
       });
     });
   }

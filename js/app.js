@@ -57,8 +57,8 @@ function loadScript(src) {
 async function loadSnapshot() {
   const res = await fetch(SNAPSHOT_URL, { cache: 'no-cache' });
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${SNAPSHOT_URL}`);
-  const { people, sources } = await res.json();
-  return { people, sources };
+  const { historical, current, sources } = await res.json();
+  return { people: { historical, current }, sources };
 }
 
 // Straight from the upstream repository: the raw YAML on main, or its published JSON.
@@ -75,11 +75,13 @@ async function loadLive(report) {
     ]);
     report('Parsing YAML…');
     await yieldToBrowser();
-    return { people: texts.flatMap((t) => jsyaml.load(t)), sources: null, label: 'YAML from the main branch' };
+    const [historical, current] = texts.map((t) => jsyaml.load(t));
+    return { people: { historical, current }, sources: null, label: 'YAML from the main branch' };
   } catch (err) {
     console.warn('Raw YAML failed, falling back to the published JSON', err);
     const texts = await Promise.all(FILES.map((f, i) => fetchText(`${JSON_BASE}${f}.json`, progress(i))));
-    return { people: texts.flatMap((t) => JSON.parse(t)), sources: null, label: 'JSON from the gh-pages branch' };
+    const [historical, current] = texts.map((t) => JSON.parse(t));
+    return { people: { historical, current }, sources: null, label: 'JSON from the gh-pages branch' };
   }
 }
 
@@ -225,7 +227,9 @@ function describeOcc(slot, occ) {
   if (!occ) return `<div class="name">Vacant</div><div class="muted">${esc(slot.label)}</div>${hint}`;
   const p = model.persons[occ.iv.pi];
   const { party, caucus } = occ.seg;
-  const until = occ.iv.e > today ? `term ends ${fmtShort(occ.iv.e)}` : fmtShort(occ.iv.e);
+  const until = occ.iv.recordedEnd !== null
+    ? `today, still serving after the recorded end date ${fmtShort(occ.iv.recordedEnd)}`
+    : occ.iv.e > today ? `term ends ${fmtShort(occ.iv.e)}` : fmtShort(occ.iv.e);
   const lines = [
     `<div class="name">${esc(p.name)}</div>`,
     `<div class="line">${swatch(party)} ${esc(party)}${caucus && caucus !== party ? ` <span class="muted">(caucuses with ${esc(caucus)}s)</span>` : ''}</div>`,
@@ -764,7 +768,7 @@ async function main() {
       return;
     }
   }
-  statusEl.textContent = `Building seat timelines for ${data.people.length.toLocaleString()} legislators…`;
+  statusEl.textContent = `Building seat timelines for ${(data.people.historical.length + data.people.current.length).toLocaleString()} legislators…`;
   await yieldToBrowser();
   useData(data.people);
 

@@ -53,11 +53,13 @@ function check(people) {
 }
 
 const sources = {};
-const people = [];
+const lists = [];
 for (const file of FILES) {
   sources[file] = await latestCommit(file);
-  people.push(...(await fetchYaml(file, sources[file].sha)).map(trim));
+  lists.push((await fetchYaml(file, sources[file].sha)).map(trim));
 }
+const [historical, current] = lists;
+const people = { historical, current };
 
 const problems = check(people);
 if (problems.length) {
@@ -65,11 +67,11 @@ if (problems.length) {
   process.exit(1);
 }
 
-const json = JSON.stringify({ repo: REPO, sources, people });
+const json = JSON.stringify({ repo: REPO, sources, historical, current });
 const previous = await readFile(OUT, 'utf8').catch(() => '');
 if (previous === json) {
   console.log('Snapshot unchanged.');
 } else {
   await writeFile(OUT, json);
-  console.log(`Wrote ${people.length} legislators (${(json.length / 1e6).toFixed(1)} MB).`);
+  console.log(`Wrote ${historical.length + current.length} legislators (${(json.length / 1e6).toFixed(1)} MB).`);
 }
