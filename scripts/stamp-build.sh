@@ -10,6 +10,7 @@ sed -i.bak \
   -e "s|<meta name=\"build\" content=\"dev\">|<meta name=\"build\" content=\"$id\">|" \
   -e "s|href=\"css/style.css\"|href=\"css/style.css?v=$id\"|" \
   -e "s|src=\"js/app.js\"|src=\"js/app.js?v=$id\"|" \
+  -e "s|src=\"js/contact.js\"|src=\"js/contact.js?v=$id\"|" \
   "$dir/index.html"
 sed -i.bak \
   -e "s|^const BUILD = 'dev';|const BUILD = '$id';|" \
