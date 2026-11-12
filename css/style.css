@@ -248,6 +248,15 @@ h2 { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.01em; }
 
 .notes { margin-top: 28px; color: var(--ink-2); font-size: 13.5px; max-width: 80ch; }
 .notes h3 { font-size: 14px; color: var(--ink); margin: 0 0 6px; }
+.site-footer {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 13px;
+}
+.site-footer p { margin: 0 0 8px; max-width: 80ch; }
 
 @media (min-width: 900px) {
   .controls { position: sticky; top: 0; }

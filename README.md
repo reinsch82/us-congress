@@ -1,5 +1,7 @@
 # Congress Seats Through Time
 
+**Live site: https://reinsch82.github.io/us-congress/**
+
 A static page that draws every seat in the US Senate and House of Representatives on any day from 1789 to today, with one dot per member, colored by party.
 
 The data comes from `legislators-historical.yaml` and `legislators-current.yaml` on the `main` branch of
