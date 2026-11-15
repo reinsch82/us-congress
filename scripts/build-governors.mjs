@@ -87,6 +87,24 @@ function nameKey(name) {
 }
 // Same surname, and a first name that appears in the other name or shares its initial
 // ("Marvin Griffin" is "Samuel Marvin Griffin" in the NGA data).
+// How well two names match: 3 same first name, 2 one's first name among the other's
+// names, 1 same initial, 0 different surname or no match. Middle names shift the score:
+// "Joseph Mackey Brown" matches "Joseph M. Brown" better than "Joseph E. Brown".
+function nameScore(a, b) {
+  if (a.last !== b.last) return 0;
+  let score;
+  if (a.first === b.first) score = 3;
+  else if (b.tokens.includes(a.first) || a.tokens.includes(b.first)) score = 2;
+  else if (a.first[0] === b.first[0]) score = 1;
+  else return 0;
+  const middle = (k) => k.tokens.slice(1, -1);
+  const [ma, mb] = [middle(a), middle(b)];
+  if (ma.length && mb.length) {
+    const agree = ma.some((x) => mb.some((y) => x === y || (x.length === 1 || y.length === 1) && x[0] === y[0]));
+    score += agree ? 0.5 : -0.5;
+  }
+  return score;
+}
 const sameName = (a, b) => a.last === b.last
   && (a.first[0] === b.first[0] || b.tokens.includes(a.first) || a.tokens.includes(b.first));
 
@@ -275,6 +293,27 @@ const byState = Object.fromEntries(Object.values(officeState).map((s) => [s, []]
 const people = new Map();
 let filled = 0, unplaced = [];
 
+// Sorted, so that the same data always produces the same snapshot.
+terms.sort((a, b) => a.office.localeCompare(b.office) || a.person.localeCompare(b.person)
+  || (a.start || '').localeCompare(b.start || '') || (a.end || '').localeCompare(b.end || ''));
+
+// Each Kaplan stretch belongs to the state's Wikidata governor whose name matches it best;
+// on a tie it belongs to nobody (two "J. Smith"s are not resolved by guessing).
+const bestHolder = new Map();
+{
+  const statePeople = new Map();
+  for (const row of terms) {
+    const state = officeState[qid(row.office)];
+    if (!statePeople.has(state)) statePeople.set(state, new Map());
+    statePeople.get(state).set(qid(row.person), nameKey(row.personLabel));
+  }
+  for (const g of kaplan) {
+    const scored = [...(statePeople.get(g.state) || [])].map(([id, key]) => [id, nameScore(key, g.key)]).filter(([, n]) => n > 0)
+      .sort((a, b) => b[1] - a[1]);
+    if (scored.length && (scored.length === 1 || scored[0][1] > scored[1][1])) bestHolder.set(g, scored[0][0]);
+  }
+}
+
 for (const row of terms) {
   const state = officeState[qid(row.office)];
   const person = qid(row.person);
@@ -286,8 +325,12 @@ for (const row of terms) {
   }
   const acting = qid(row.nature) === 'Q4676846';
   const key = nameKey(row.personLabel);
-  const kaplanMatches = kaplan.filter((g) => g.state === state && sameName(g.key, key));
-  const kaplanPartyIn = (year) => kaplanMatches.map((g) => g.years.get(year)).find(Boolean) || null;
+  const kaplanMatches = kaplan.filter((g) => g.state === state && bestHolder.get(g) === person);
+  const kaplanPartyIn = (year) => {
+    const candidates = kaplan.filter((g) => g.state === state && g.years.has(year) && nameScore(key, g.key) > 0)
+      .sort((a, b) => nameScore(key, b.key) - nameScore(key, a.key));
+    return candidates[0]?.years.get(year) || null;
+  };
 
   const spans = [];
   if (row.start) {
@@ -354,7 +397,9 @@ function fillGaps(state, list) {
       // ("William P. Clements" in the NGA data is Wikidata's "Bill Clements").
       const statePeople = [...new Set(list.map((t) => t.person))].map((id) => [id, nameKey(people.get(id).name)]);
       const bySurname = statePeople.filter(([, k]) => k.last === g.key.last);
-      const known = statePeople.find(([, k]) => sameName(k, g.key)) || (bySurname.length === 1 ? bySurname[0] : null);
+      const scored = statePeople.map(([id, k]) => [id, nameScore(k, g.key)]).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
+      const best = scored.length === 1 || (scored.length > 1 && scored[0][1] > scored[1][1]) ? scored[0] : null;
+      const known = best || (scored.length === 0 && bySurname.length === 1 ? bySurname[0] : null);
       const person = known ? known[0] : `K:${g.name}`;
       if (!people.has(person)) people.set(person, { name: g.name, image: null });
       added.push({ person, s, e, startPrecision: 'year', endPrecision: 'year', acting: false, party: g.years.get(g.startYear) || null });
@@ -446,7 +491,9 @@ const openStates = await loadOpenStatesGovernors();
 console.log(`Open States lists governors for ${Object.keys(openStates).length} jurisdictions.`);
 if (Object.keys(openStates).filter((s) => STATEHOOD[s]).length < 45) throw new Error('Open States lists fewer than 45 state governors');
 const log = await updateObservations(openStates);
-const previous = JSON.parse(await readFile(OUT, 'utf8').catch(() => 'null'));
+// After a fix to this script's own logic, run once with NO_RETAIN=1: otherwise the protection
+// below would keep the old, wrong results for RETAIN_DAYS.
+const previous = process.env.NO_RETAIN ? null : JSON.parse(await readFile(OUT, 'utf8').catch(() => 'null'));
 
 const states = {};
 const notes = [];
@@ -498,10 +545,10 @@ if (problems.length) {
 const usedPeople = new Set(Object.values(states).flatMap((l) => l.map((t) => t.id)));
 const json = JSON.stringify({
   sources: ['Wikidata (CC0)', 'Jacob Kaplan, United States Governors 1775-2020 (ODbL)', 'Open States (CC0)'],
-  people: Object.fromEntries([...people].filter(([id]) => usedPeople.has(id))),
+  people: Object.fromEntries([...people].filter(([id]) => usedPeople.has(id)).sort(([a], [b]) => a.localeCompare(b))),
   states,
 });
-if (JSON.stringify(previous) === json) {
+if (await readFile(OUT, 'utf8').catch(() => '') === json) {
   console.log('Snapshot unchanged.');
 } else {
   await writeFile(OUT, json);

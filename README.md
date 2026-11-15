@@ -28,7 +28,8 @@ governors per state. Its data, `data/governors.json`, is built daily by `scripts
 
 The build also compares with the previous snapshot. If a term disappears from the sources or loses its exact dates, the
 previous version is kept for up to 60 days and the workflow logs a warning. After that the change is accepted, so genuine
-corrections still come through. The snapshot is only written if every state has exactly one governor today, the one Open States lists.
+corrections still come through. After changing the build logic itself, run it once with `NO_RETAIN=1`, so the
+protection doesn't keep the old results. The snapshot is only written if every state has exactly one governor today, the one Open States lists.
 
 Because part of it comes from Kaplan's dataset, `data/governors.json` is available under the
 [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). A few gaps remain where neither source has a governor; corrections made in
