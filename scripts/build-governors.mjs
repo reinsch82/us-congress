@@ -30,10 +30,19 @@ const TODAY = toDay(new Date().toISOString().slice(0, 10));
 const ghHeaders = { Accept: 'application/vnd.github+json' };
 if (process.env.GITHUB_TOKEN) ghHeaders.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
 
+// The query service rate-limits (429) and has busy moments (5xx); GitHub's runners share
+// addresses, so wait as long as it asks (or 30, 60, 120 s) and try again.
 async function sparql(query) {
-  const res = await fetch(`${SPARQL}?query=${encodeURIComponent(query)}`, {
-    headers: { Accept: 'application/sparql-results+json', 'User-Agent': USER_AGENT },
-  });
+  let res;
+  for (const wait of [30, 60, 120, null]) {
+    res = await fetch(`${SPARQL}?query=${encodeURIComponent(query)}`, {
+      headers: { Accept: 'application/sparql-results+json', 'User-Agent': USER_AGENT },
+    });
+    if (res.ok || wait === null || !(res.status === 429 || res.status >= 500)) break;
+    const seconds = Math.min(Number(res.headers.get('retry-after')) || wait, 300);
+    console.log(`Wikidata answered ${res.status}; trying again in ${seconds} s.`);
+    await new Promise((r) => setTimeout(r, seconds * 1000));
+  }
   if (!res.ok) throw new Error(`Wikidata ${res.status}`);
   const json = await res.json();
   return json.results.bindings.map((b) => Object.fromEntries(Object.entries(b).map(([k, v]) => [k, v.value])));
