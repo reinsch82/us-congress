@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url || steps.deployment-retry.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -56,13 +56,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898341+github-actions[bot]@users.noreply.github.com"
+          # A re-run or an overlapping run may find main already moved on: rebase onto it,
+          # keeping this run's freshly built data on conflicts.
+          push() { git pull --rebase -X theirs origin main && git push; }
           if [ -n "$(git status --porcelain -- data)" ]; then
             git add data
             git commit -m "Update data snapshots"
-            git push
+            push
           elif [ $(( $(date +%s) - $(git log -1 --format=%ct) )) -gt $(( 45 * 86400 )) ]; then
             git commit --allow-empty -m "Keep scheduled data update active"
-            git push
+            push
           fi
 
       - name: Assemble site
@@ -78,6 +81,16 @@ jobs:
           path: _site
 
       - id: deployment
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      # Right after the upload, GitHub sometimes reports the artifact as missing. Try again.
+      - name: Wait before retrying the deployment
+        if: steps.deployment.outcome == 'failure'
+        run: sleep 30
+
+      - id: deployment-retry
+        if: steps.deployment.outcome == 'failure'
         uses: actions/deploy-pages@v4
 
       - name: Report data build failure
