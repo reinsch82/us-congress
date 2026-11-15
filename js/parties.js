@@ -43,6 +43,7 @@ export const PARTIES = {
   'Pro-Administration':    { order: 84, color: '#d9883b' },
   'Federalist':            { order: 86, color: '#ee7d3b' },
   'Adams':                 { order: 87, color: '#c07a1a' },
+  'National Republican':   { order: 87.5, color: '#c07a1a' },
   'Anti-Jacksonian':       { order: 88, color: '#b45309' },
   'Whig':                  { order: 89, color: '#d99e0b' },
   'Republican':            { order: 90, color: '#d0312d' },

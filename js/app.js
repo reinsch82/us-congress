@@ -1,9 +1,9 @@
 /* global d3, jsyaml */
 import { buildModel, toDay, fromDay, congressOf, congressStart } from './model.js';
 import { partyInfo } from './parties.js';
-
-// Replaced with the commit ID at deploy time by scripts/stamp-build.sh.
-const BUILD = 'dev';
+import {
+  $, today, yieldToBrowser, fmtDate, fmtShort, ordinal, esc, colorOf, swatch, eventIndexAtOrBefore, checkBuild,
+} from './common.js';
 
 const REPO = 'unitedstates/congress-legislators';
 const SNAPSHOT_URL = 'data/legislators.json';
@@ -14,9 +14,7 @@ const FILES = ['legislators-historical', 'legislators-current'];
 const photoUrl = (id) => `https://unitedstates.github.io/images/congress/225x275/${id}.jpg`;
 const bioguideUrl = (id) => `https://bioguide.congress.gov/search/bio/${id}`;
 
-const $ = (sel, root = document) => root.querySelector(sel);
 const statusEl = $('#status');
-const today = toDay(new Date().toISOString().slice(0, 10));
 const CHAMBERS = ['sen', 'rep'];
 
 let model;
@@ -40,8 +38,6 @@ async function fetchText(url, onProgress) {
   }
   return new Blob(chunks).text();
 }
-
-const yieldToBrowser = () => new Promise((r) => setTimeout(r, 0));
 
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -145,24 +141,8 @@ function useData(people) {
 
 // ---------------------------------------------------------------- helpers
 
-const fmtDate = (day) => new Date(day * 864e5).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
-const fmtShort = (day) => new Date(day * 864e5).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
-const ordinal = (n) => n + (['th', 'st', 'nd', 'rd'][(n % 100 > 10 && n % 100 < 14) ? 0 : n % 10] || 'th');
-const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const partyOf = (occ) => (occ ? occ.seg.party : 'Vacant');
-const colorOf = (party) => (party === 'Vacant' ? 'transparent' : partyInfo(party).color);
-const swatch = (party) => `<span class="swatch${party === 'Vacant' ? ' vacant' : ''}" style="background:${colorOf(party)}"></span>`;
 const personName = (occ) => model.persons[occ.iv.pi].name;
-
-// Last index i with list[i].day <= day, or -1.
-function eventIndexAtOrBefore(list, day) {
-  let lo = 0, hi = list.length - 1;
-  while (lo <= hi) {
-    const mid = (lo + hi) >> 1;
-    if (list[mid].day <= day) lo = mid + 1; else hi = mid - 1;
-  }
-  return hi;
-}
 
 // Where a member sits: party order, with caucusing independents next to their caucus.
 function seatRank(entry) {
@@ -644,6 +624,7 @@ function render(animate) {
   updateTimelineCursor();
   updateStepButtons();
   history.replaceState(null, '', `#${fromDay(day)}`);
+  for (const a of document.querySelectorAll('a[data-nav]')) a.hash = fromDay(day);
 }
 
 function stopPlaying() {
@@ -733,23 +714,6 @@ function setupControls() {
 }
 
 // ---------------------------------------------------------------- start
-
-// A browser can hold a cached page from an earlier deploy while fetching this newer
-// script (GitHub Pages lets both be cached for 10 minutes). Reload once to get a
-// matching page instead of running against markup this script doesn't know.
-function checkBuild() {
-  const pageBuild = document.querySelector('meta[name="build"]')?.content;
-  if (pageBuild === BUILD) return true;
-  const key = `reloaded-for-${BUILD}`;
-  try {
-    if (sessionStorage.getItem(key)) return true;
-    sessionStorage.setItem(key, '1');
-  } catch {
-    return true;
-  }
-  location.reload();
-  return false;
-}
 
 async function main() {
   if (!checkBuild()) return;

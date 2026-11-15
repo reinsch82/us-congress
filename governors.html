@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="build" content="dev">
+  <title>Governors Through Time</title>
+  <meta name="description" content="The governor of every US state from 1776 to today, colored by party, based on Wikidata and National Governors Association data.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 20'%3E%3Cpath d='M2 18a14 14 0 0 1 28 0' fill='none' stroke='%232563c9' stroke-width='4'/%3E%3Cpath d='M9 18a7 7 0 0 1 14 0' fill='none' stroke='%23d0312d' stroke-width='4'/%3E%3C/svg%3E">
+</head>
+<body>
+  <nav class="site-nav" aria-label="Pages">
+    <a href="index.html" data-nav>Congress</a>
+    <a href="governors.html" data-nav aria-current="page">Governors</a>
+  </nav>
+  <header class="page-head">
+    <div>
+      <h1>Governors Through Time</h1>
+      <p class="sub">The governor of every state from 1776 to today. Each square is one state, colored by its governor's party.</p>
+    </div>
+    <p class="source" id="source">
+      Data: <a href="https://www.wikidata.org/">Wikidata</a>, gaps filled from <a href="https://github.com/jacobkap/governors">NGA data</a>,
+      checked against <a href="https://github.com/openstates/people">Open States</a>.
+      Source code: <a href="https://github.com/reinsch82/us-congress">reinsch82/us-congress</a>.
+    </p>
+  </header>
+
+  <div id="status" class="status" role="status">Loading…</div>
+
+  <main id="app" hidden>
+    <section class="controls" aria-label="Time controls">
+      <div class="when">
+        <div>
+          <p id="date-heading" class="date-heading" aria-live="polite"></p>
+          <p id="date-sub" class="congress-label"></p>
+        </div>
+        <label class="jump">Go to date <input type="date" id="date-input"></label>
+      </div>
+      <input type="range" id="slider" class="slider" aria-label="Date">
+      <div class="steppers">
+        <div class="step-group" role="group" aria-label="Year">
+          <span class="step-label">Year</span>
+          <button data-step="year" data-dir="-1" title="Previous January 1 (PageUp)">◀</button>
+          <button data-step="year" data-dir="1" title="Next January 1 (PageDown)">▶</button>
+        </div>
+        <div class="step-group" role="group" aria-label="Governor changes">
+          <span class="step-label">Governor change</span>
+          <button data-step="change" data-dir="-1" title="Previous change (←)">◀</button>
+          <button data-step="change" data-dir="1" title="Next change (→)">▶</button>
+        </div>
+        <button id="play" class="play" aria-pressed="false" title="Play through every change (Space)">▶ Play</button>
+      </div>
+    </section>
+
+    <section class="timeline-wrap" aria-label="Party share of governorships over time">
+      <svg id="timeline" class="timeline timeline-single" role="img" aria-label="Share of governorships by party over time. Click to jump to a date."></svg>
+      <div id="timeline-tip" class="tooltip" hidden></div>
+    </section>
+
+    <section class="chamber governors" aria-labelledby="gov-title">
+      <div class="chamber-head">
+        <h2 id="gov-title">Governors</h2>
+        <div class="majority" data-role="majority"></div>
+      </div>
+      <div class="tally" data-role="tally"></div>
+      <svg class="tile-map" data-role="map" role="img" aria-label="Map of US states colored by the governor's party"></svg>
+      <div class="changes" data-role="changes"></div>
+      <details class="roster" data-role="roster"><summary>List all governors on this date</summary><div></div></details>
+    </section>
+
+    <footer class="notes">
+      <h3>About the data</h3>
+      <p>Who held each state's governor office, and when, comes from Wikidata. Some governors are in Wikidata without dates, and some terms are
+        missing. Those gaps are filled with years in office from the National Governors Association, via Jacob Kaplan's dataset (until 2020). Such
+        terms only have a year, so they are shown as starting and ending on January 1 and marked “year only”. A few gaps remain where neither source has a
+        governor; the map shows those states as “no governor recorded”. Today's governors are checked against Open States before each update.</p>
+      <p>A governor with several parties in Wikidata is assigned the party recorded for that time, or else the one recorded by the National Governors
+        Association, or else the one that existed then. Territorial and colonial governors are not included.
+        Corrections made in Wikidata show up here the next day.</p>
+      <p>Keyboard: ← → step through changes, PageUp/PageDown through years, Space plays. Click a state to see all its governors.</p>
+    </footer>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Made by Reinhold Degenfellner. The source code is on GitHub at <a href="https://github.com/reinsch82/us-congress">reinsch82/us-congress</a>
+      and released under the <a href="https://github.com/reinsch82/us-congress/blob/main/LICENSE">MIT License</a>. The governor data combines
+      <a href="https://www.wikidata.org/">Wikidata</a> (<a href="https://creativecommons.org/publicdomain/zero/1.0/">CC0</a>),
+      Jacob Kaplan's <a href="https://github.com/jacobkap/governors">United States Governors 1775–2020</a> based on National Governors Association
+      data (<a href="https://opendatacommons.org/licenses/odbl/1-0/">ODbL</a>), and <a href="https://openstates.org/">Open States</a> (CC0).
+      Photos come from Wikimedia Commons; follow a photo's link for its author and license.
+    </p>
+    <section class="impressum" id="impressum" aria-labelledby="impressum-title">
+      <h2 id="impressum-title">Impressum</h2>
+      <p>
+        Offenlegung gemäß § 25 Mediengesetz<br>
+        Medieninhaber: Reinhold Degenfellner, Puchenau, Austria<br>
+        Kontakt: <span id="contact-email">enable JavaScript to see the address</span><br>
+        Grundlegende Richtung: private, non-commercial website showing the composition of the US Congress and the state governorships over time, based on public data.
+      </p>
+    </section>
+  </footer>
+
+  <div id="seat-tip" class="tooltip seat-tip" hidden></div>
+
+  <dialog id="seat-history" class="seat-history" aria-labelledby="seat-history-title">
+    <div class="history-head">
+      <h2 id="seat-history-title"></h2>
+      <button type="button" data-role="close" aria-label="Close list of governors">✕</button>
+    </div>
+    <p class="muted" data-role="summary"></p>
+    <ol></ol>
+  </dialog>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <script src="js/contact.js" defer></script>
+  <script type="module" src="js/governors.js"></script>
+</body>
+</html>

@@ -1,6 +1,6 @@
 # Congress Seats Through Time
 
-**Live site: https://reinsch82.github.io/us-congress/**
+**Live site: https://reinsch82.github.io/us-congress/** (Congress) and **https://reinsch82.github.io/us-congress/governors.html** (governors)
 
 A static page that draws every seat in the US Senate and House of Representatives on any day from 1789 to today, with one dot per member, colored by party.
 
@@ -12,6 +12,21 @@ of it as `data/legislators.json` and deploys it with the page, so visitors only 
 - If the snapshot can't be loaded, the page fetches the raw YAML from GitHub directly, or failing that the JSON copies on the project's GitHub Pages site.
 
 Member photos come from [unitedstates/images](https://github.com/unitedstates/images).
+
+## Governors page
+
+`governors.html` shows every state's governor on a tile map, with the same date controls, a party-share timeline and a list of all
+governors per state. Its data, `data/governors.json`, is built daily by `scripts/build-governors.mjs` from:
+
+- [Wikidata](https://www.wikidata.org/) (CC0): who held each state's governor office, with exact dates where recorded.
+- Jacob Kaplan's [United States Governors 1775–2020](https://github.com/jacobkap/governors) (ODbL, from National Governors Association data):
+  years in office where Wikidata has no dates or misses a term, and party per year for governors with several parties.
+  Terms from this source only have a year and are marked “year only”.
+- [Open States](https://github.com/openstates/people) (CC0): today's governors. The snapshot is only updated if all 50 match.
+
+Because part of it comes from Kaplan's dataset, `data/governors.json` is available under the
+[ODbL](https://opendatacommons.org/licenses/odbl/1-0/). A few gaps remain where neither source has a governor; corrections made in
+Wikidata appear on the page the next day.
 
 ## Features
 
@@ -61,7 +76,8 @@ without changes (124 days in 2023), so after 45 days without a commit the workfl
 - `js/model.js` turns person records into per-seat timelines and change events. It has no DOM code, so it also runs under Node.
 - `js/parties.js` holds party name normalisation, colors and seating order.
 - `js/app.js` handles loading, rendering (D3) and controls.
-- `scripts/build-data.mjs` builds the daily snapshot.
+- `scripts/build-data.mjs` builds the daily legislator snapshot, `scripts/build-governors.mjs` the governor snapshot.
+- `js/governors.js` runs the governors page, `js/common.js` holds helpers both pages share.
 
 ## Data caveats
 
