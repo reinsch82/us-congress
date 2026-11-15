@@ -6,15 +6,21 @@
 // - Jacob Kaplan's "United States Governors 1775-2020" (ODbL, from National Governors
 //   Association data): years in office for governors that Wikidata lists without dates,
 //   and party per year where Wikidata gives a governor several parties without dates.
-// - Open States (CC0): today's governors, used only to check the result.
+// - Open States (CC0): today's governors. Every run records them in
+//   data/governors-observed.json, so this site keeps its own day-by-day record of who
+//   governs each state, and a new governor shows up before Wikidata catches up.
 //
-// Nothing is written if today's governors don't match Open States.
+// The previous snapshot guards against losses: a term that disappears from the sources, or
+// loses its exact dates, is kept from the previous snapshot for up to 60 days. Corrections
+// (other dates, another party) are taken over right away.
 
 import { writeFile, readFile } from 'node:fs/promises';
 import yaml from 'js-yaml';
 import { STATE_NAMES, STATEHOOD, toDay, fromDay } from '../js/model.js';
 
 const OUT = new URL('../data/governors.json', import.meta.url);
+const OBSERVED = new URL('../data/governors-observed.json', import.meta.url);
+const RETAIN_DAYS = 60;
 const SPARQL = 'https://query.wikidata.org/sparql';
 const USER_AGENT = 'us-congress-governors/1.0 (https://github.com/reinsch82/us-congress)';
 const KAPLAN_CSV = 'https://raw.githubusercontent.com/jacobkap/governors/master/data/united_states_governors_1775_2020.csv';
@@ -183,13 +189,21 @@ async function loadOpenStatesGovernors() {
   if (!res.ok) throw new Error(`GitHub API ${res.status} listing ${OPENSTATES}`);
   const paths = (await res.json()).tree.map((t) => t.path).filter((p) => /^data\/[a-z]{2}\/executive\/.+\.yml$/.test(p));
   const governors = {};
+  const iso = (d) => (d instanceof Date ? d.toISOString().slice(0, 10) : String(d));
   await Promise.all(paths.map(async (path) => {
     const r = await fetch(`https://raw.githubusercontent.com/${OPENSTATES}/main/${path}`);
     if (!r.ok) return;
     const person = yaml.load(await r.text());
-    const day = (d) => toDay(d instanceof Date ? d.toISOString().slice(0, 10) : String(d));
-    const role = person.roles?.find((x) => x.type === 'governor' && (!x.end_date || day(x.end_date) > TODAY) && (!x.start_date || day(x.start_date) <= TODAY));
-    if (role) governors[path.split('/')[1].toUpperCase()] = person.name;
+    const role = person.roles?.find((x) => x.type === 'governor'
+      && (!x.end_date || toDay(iso(x.end_date)) > TODAY) && (!x.start_date || toDay(iso(x.start_date)) <= TODAY));
+    if (!role) return;
+    governors[path.split('/')[1].toUpperCase()] = {
+      id: person.id.replace('ocd-person/', ''),
+      name: person.name,
+      party: normaliseParty(person.party?.[0]?.name),
+      start: role.start_date ? iso(role.start_date) : null,
+      image: person.image || null,
+    };
   }));
   return governors;
 }
@@ -302,6 +316,18 @@ for (const row of terms) {
   }
 }
 
+// Items without an English or multilingual label come back as their ID; try any language.
+const unnamed = [...people].filter(([, p]) => /^Q\d+$/.test(p.name)).map(([id]) => id);
+for (let i = 0; i < unnamed.length; i += 50) {
+  const ids = unnamed.slice(i, i + 50).join('|');
+  const res = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids}&props=labels|sitelinks&sitefilter=enwiki&format=json`, { headers: { 'User-Agent': USER_AGENT } });
+  const { entities } = await res.json();
+  for (const [id, e] of Object.entries(entities)) {
+    const label = e.labels?.en?.value || e.labels?.mul?.value || e.sitelinks?.enwiki?.title || Object.values(e.labels || {})[0]?.value;
+    if (label) people.get(id).name = label;
+  }
+}
+
 const yearOf = (day) => new Date(day * 864e5).getUTCFullYear();
 const DAYS_PER_YEAR = 366;
 
@@ -337,13 +363,105 @@ function fillGaps(state, list) {
   return added;
 }
 
+// ---------------------------------------------------------------- own record of today's governors
+
+// Each state's governors as seen in Open States, oldest first:
+// { id, name, party, start (Open States' start date, if any), firstSeen, lastSeen }.
+async function updateObservations(openStates) {
+  const log = JSON.parse(await readFile(OBSERVED, 'utf8').catch(() => '{}'));
+  const today = fromDay(TODAY);
+  for (const [state, gov] of Object.entries(openStates)) {
+    if (!STATEHOOD[state]) continue;
+    const list = (log[state] ||= []);
+    const last = list[list.length - 1];
+    if (last && last.id === gov.id) {
+      Object.assign(last, { name: gov.name, party: gov.party, start: gov.start ?? last.start, lastSeen: today });
+    } else {
+      list.push({ id: gov.id, name: gov.name, party: gov.party, start: gov.start, image: gov.image, firstSeen: today, lastSeen: today });
+    }
+  }
+  const sorted = Object.fromEntries(Object.keys(log).sort().map((k) => [k, log[k]]));
+  await writeFile(OBSERVED, `${JSON.stringify(sorted, null, 1)}\n`);
+  return sorted;
+}
+
+const sameNameAs = (a, b) => sameName(nameKey(a), nameKey(b));
+
+// Observed governors that the sources don't have yet become terms of their own. Their start
+// is Open States' start date, or else the day this site first saw them.
+function addObserved(state, list, log) {
+  const observed = log[state] || [];
+  const added = [];
+  observed.forEach((o, i) => {
+    const s = toDay(o.start || o.firstSeen);
+    const next = observed[i + 1];
+    const e = next ? toDay(next.start || next.firstSeen) : null;
+    const known = list.some((t) => sameNameAs(people.get(t.person).name, o.name) && (t.e === null || t.e > s) && (e === null || t.s < e));
+    if (known) return;
+    const person = `OS:${o.id}`;
+    if (!people.has(person)) people.set(person, { name: o.name, imageUrl: o.image || null });
+    added.push({
+      person, s, e, startPrecision: 'day', endPrecision: e === null ? null : 'day', acting: false, party: o.party,
+      observed: o.start ? 'start-date' : 'first-seen',
+    });
+  });
+  return added;
+}
+
+// ---------------------------------------------------------------- protection against losses
+
+function fromSnapshot(t) {
+  return {
+    person: t.id, s: toDay(t.start), e: t.end ? toDay(t.end) : null,
+    startPrecision: t.startPrecision || 'day', endPrecision: t.end ? (t.endPrecision || 'day') : null,
+    party: t.party, acting: !!t.acting, observed: t.observed, retainedSince: t.retainedSince,
+  };
+}
+
+// Keep what the previous snapshot knew and the new build lost, for up to RETAIN_DAYS.
+function retainLosses(state, list, previous, notes) {
+  const overlaps = (a, b) => a.s < (b.e ?? Infinity) && b.s < (a.e ?? Infinity);
+  const samePerson = (a, b) => a.person === b.person || sameNameAs(people.get(a.person)?.name ?? '', people.get(b.person)?.name ?? '');
+  const expired = (t) => t.retainedSince && TODAY - toDay(t.retainedSince) > RETAIN_DAYS;
+  const kept = [];
+  for (const old of (previous?.states?.[state] || []).map(fromSnapshot)) {
+    if (!people.has(old.person)) people.set(old.person, previous.people[old.person] || { name: old.person });
+    const match = list.find((t) => samePerson(t, old) && overlaps(t, old));
+    const name = people.get(old.person).name;
+    if (!match) {
+      if (expired(old)) { notes.push(`${state}: accepted removal of ${name} (${fromDay(old.s)})`); continue; }
+      kept.push({ ...old, retainedSince: old.retainedSince || fromDay(TODAY) });
+      notes.push(`${state}: kept ${name} (${fromDay(old.s)}), missing from the sources`);
+    } else if (old.startPrecision === 'day' && match.startPrecision === 'year' && !expired(old)) {
+      Object.assign(match, { s: old.s, e: old.e, startPrecision: 'day', endPrecision: old.endPrecision, retainedSince: old.retainedSince || fromDay(TODAY) });
+      notes.push(`${state}: kept exact dates for ${name}, the sources only have years now`);
+    }
+  }
+  return kept;
+}
+
+// ---------------------------------------------------------------- assembling
+
+const openStates = await loadOpenStatesGovernors();
+console.log(`Open States lists governors for ${Object.keys(openStates).length} jurisdictions.`);
+if (Object.keys(openStates).filter((s) => STATEHOOD[s]).length < 45) throw new Error('Open States lists fewer than 45 state governors');
+const log = await updateObservations(openStates);
+const previous = JSON.parse(await readFile(OUT, 'utf8').catch(() => 'null'));
+
 const states = {};
-let gapFills = 0;
+const notes = [];
+let gapFills = 0, observedAdds = 0;
 for (const [state, list] of Object.entries(byState)) {
-  const resolved = resolve(list);
-  const added = fillGaps(state, resolved);
-  gapFills += added.length;
-  states[state] = resolve([...resolved, ...added]).map((t) => ({
+  let terms = resolve(list);
+  const gaps = fillGaps(state, terms);
+  gapFills += gaps.length;
+  terms = resolve([...terms, ...gaps]);
+  const observed = addObserved(state, terms, log);
+  observedAdds += observed.length;
+  terms = resolve([...terms, ...observed]);
+  const kept = retainLosses(state, terms, previous, notes);
+  terms = resolve([...terms, ...kept]);
+  states[state] = terms.map((t) => ({
     id: t.person,
     start: fromDay(t.s),
     ...(t.startPrecision === 'year' ? { startPrecision: 'year' } : {}),
@@ -351,38 +469,27 @@ for (const [state, list] of Object.entries(byState)) {
     ...(t.endPrecision === 'year' ? { endPrecision: 'year' } : {}),
     party: t.party,
     ...(t.acting ? { acting: true } : {}),
+    ...(t.observed ? { observed: t.observed } : {}),
+    ...(t.retainedSince ? { retainedSince: t.retainedSince } : {}),
   }));
 }
 
-// Items without an English or multilingual label come back as their ID; try any language.
-const unnamed = [...people].filter(([, p]) => /^Q\d+$/.test(p.name)).map(([id]) => id);
-for (let i = 0; i < unnamed.length; i += 50) {
-  const ids = unnamed.slice(i, i + 50).join('|');
-  const res = await fetch(`https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${ids}&props=labels|sitelinks&sitefilter=enwiki&format=json`, { headers: { 'User-Agent': USER_AGENT } });
-  const { entities } = await res.json();
-  for (const [id, e] of Object.entries(entities)) {
-    const label = e.labels?.en?.value || e.labels?.mul?.value || e.sitelinks?.enwiki?.title || Object.values(e.labels || {})[0]?.value;
-    if (label) people.get(id).name = label;
-  }
-}
-
-console.log(`Added ${gapFills} terms missing from Wikidata from Kaplan.`);
+console.log(`Added ${gapFills} terms missing from Wikidata from Kaplan, ${observedAdds} from this site's own record.`);
 console.log(`Filled ${filled} undated Wikidata entries from Kaplan; ${unplaced.length} could not be placed.`);
 if (unplaced.length) console.log(`Not placed: ${unplaced.join('; ')}`);
+for (const n of notes) console.log(`::warning::${n}`);
 
-// Today's governor in every state must match Open States.
-const openStates = await loadOpenStatesGovernors();
+// Every state needs exactly one governor today, the one Open States lists.
 const problems = [];
+const todayIso = fromDay(TODAY);
 for (const [state, list] of Object.entries(states)) {
-  const today = fromDay(TODAY);
-  const current = list.filter((t) => t.start <= today && (t.end === null || t.end > today));
+  const current = list.filter((t) => t.start <= todayIso && (t.end === null || t.end > todayIso));
   const expected = openStates[state];
   if (current.length !== 1) problems.push(`${state}: ${current.length} governors today`);
-  else if (expected && !sameName(nameKey(people.get(current[0].id).name), nameKey(expected))) {
-    problems.push(`${state}: Wikidata has ${people.get(current[0].id).name}, Open States has ${expected}`);
+  else if (expected && !sameNameAs(people.get(current[0].id).name, expected.name)) {
+    problems.push(`${state}: snapshot has ${people.get(current[0].id).name}, Open States has ${expected.name}`);
   }
 }
-console.log(`Checked today's governors against Open States (${Object.keys(openStates).length} states listed).`);
 if (problems.length) {
   console.error(`Not updating the snapshot:\n- ${problems.join('\n- ')}`);
   process.exit(1);
@@ -394,8 +501,7 @@ const json = JSON.stringify({
   people: Object.fromEntries([...people].filter(([id]) => usedPeople.has(id))),
   states,
 });
-const previous = await readFile(OUT, 'utf8').catch(() => '');
-if (previous === json) {
+if (JSON.stringify(previous) === json) {
   console.log('Snapshot unchanged.');
 } else {
   await writeFile(OUT, json);

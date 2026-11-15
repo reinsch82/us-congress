@@ -87,6 +87,20 @@ function snapshot(day) {
 
 const tip = $('#seat-tip');
 
+// Where a term's start date comes from, when it isn't Wikidata or the NGA data.
+function sourceNote(t) {
+  if (t.observed === 'first-seen') return 'took office on or before this date (first seen in Open States)';
+  if (t.observed === 'start-date') return 'dates from Open States';
+  if (t.startPrecision === 'year') return 'year only';
+  return '';
+}
+
+function photoOf(id) {
+  const p = data.people[id];
+  if (p?.image) return commonsThumb(p.image);
+  return p?.imageUrl || null;
+}
+
 function dateRange(t) {
   const start = t.startPrecision === 'year' ? fmtYear(t.s) : fmtShort(t.s);
   const end = t.e === Infinity || t.e > today ? 'today' : (t.endPrecision === 'year' ? fmtYear(t.e) : fmtShort(t.e));
@@ -99,12 +113,12 @@ function describe(st, day) {
   const t = governorOn(st, day);
   const hint = '<div class="hint">Click for all governors</div>';
   if (!t) return `<div class="name">${esc(name)}</div><div class="muted">${NONE} on this date</div>${hint}`;
-  const image = data.people[t.id]?.image;
-  return `${image ? `<img alt="" src="${commonsThumb(image)}" onerror="this.remove()">` : ''}
+  const image = photoOf(t.id);
+  return `${image ? `<img alt="" src="${esc(image)}" onerror="this.remove()">` : ''}
     <div class="name">${esc(t.name)}</div>
     <div class="line">${swatch(t.party)} ${esc(t.party)}</div>
     <div>Governor of ${esc(name)}${t.acting ? ' (acting)' : ''}</div>
-    <div class="muted">${dateRange(t)}${t.startPrecision === 'year' ? ', year only' : ''}</div>${hint}`;
+    <div class="muted">${dateRange(t)}${sourceNote(t) ? `, ${sourceNote(t)}` : ''}</div>${hint}`;
 }
 
 function showTip(evt, st) {
@@ -135,7 +149,7 @@ function openHistory(st) {
       <div class="who">${url ? `<a href="${url}" target="_blank" rel="noopener">${esc(t.name)}</a>` : esc(t.name)}</div>
       <div class="party">${swatch(t.party)} ${esc(t.party)}</div>
       <div class="term"><button type="button" class="link-button" data-day="${t.s}">${dateRange(t)}</button>
-        <span class="muted">${[t.acting ? 'acting' : '', t.startPrecision === 'year' ? 'year only' : ''].filter(Boolean).join(', ')}</span></div>
+        <span class="muted">${[t.acting ? 'acting' : '', sourceNote(t)].filter(Boolean).join(', ')}</span></div>
     </li>`;
   }).join('');
   if (!historyDialog.open) historyDialog.showModal();

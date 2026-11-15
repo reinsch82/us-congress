@@ -1,0 +1,552 @@
+{
+ "AK": [
+  {
+   "id": "80f0f5f8-976d-427b-b980-ce3a23a23e84",
+   "name": "Mike Dunleavy",
+   "party": "Republican",
+   "start": "2022-12-05",
+   "image": "https://gov.alaska.gov/wp-content/uploads/Gov-website-photo.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "AL": [
+  {
+   "id": "1fcc4f8d-90c5-4e7c-aa4c-3b58a3a87ba5",
+   "name": "Kay Ivey",
+   "party": "Republican",
+   "start": "2023-01-16",
+   "image": "https://governor.alabama.gov/assets/2019/09/Governor-Ivey-2019-Headshot.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "AR": [
+  {
+   "id": "1c9262ce-53a4-4d0c-ab9e-45edb5377fa0",
+   "name": "Sarah Huckabee Sanders",
+   "party": "Republican",
+   "start": "2023-01-10",
+   "image": "https://governor.arkansas.gov/wp-content/uploads/GovSHSOfficialHeadshot-2-683x1024.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "AZ": [
+  {
+   "id": "6e522a2a-e7b7-4713-a40f-c897e4341a87",
+   "name": "Katie Hobbs",
+   "party": "Democrat",
+   "start": "2023-01-02",
+   "image": "https://azgovernor.gov/sites/default/files/styles/panopoly_image_original/public/governor-katie-hobbs_0_0_0.jpeg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "CA": [
+  {
+   "id": "19e0dbe3-0e2d-4dec-b5dd-c34618cdc2c3",
+   "name": "Gavin Newsom",
+   "party": "Democrat",
+   "start": "2023-01-02",
+   "image": "https://governors.library.ca.gov/images/governors/photos/gnewsom.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "CO": [
+  {
+   "id": "be56ceea-ca7e-46b1-acdd-d4266e9d2893",
+   "name": "Jared Polis",
+   "party": "Democrat",
+   "start": "2023-01-10",
+   "image": "https://www.colorado.gov/governor/sites/default/files/2019-04/Jared-Polis_0.jpeg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "CT": [
+  {
+   "id": "4cd3e60f-3830-4121-965f-f29d9b5ec6e7",
+   "name": "Ned Lamont",
+   "party": "Democrat",
+   "start": "2023-01-04",
+   "image": "https://portal.ct.gov/-/media/Office-of-the-Governor/About/govlamont.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "DE": [
+  {
+   "id": "8c05321d-6737-437f-928b-adaf129103f5",
+   "name": "Matt Meyer",
+   "party": "Democrat",
+   "start": "2025-01-21",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "FL": [
+  {
+   "id": "284392c5-5708-4014-9ea1-9552536c5a3e",
+   "name": "Ron DeSantis",
+   "party": "Republican",
+   "start": "2023-01-03",
+   "image": "https://www.flgov.com/wp-content/uploads/desantis/Ron_DeSantis,_Official_Portrait,_113th_Congress.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "GA": [
+  {
+   "id": "600e5c48-f5c0-4535-a219-60a5fd94c38f",
+   "name": "Brian Kemp",
+   "party": "Republican",
+   "start": "2023-01-12",
+   "image": "https://gov.georgia.gov/sites/gov.georgia.gov/files/styles/flexheight/public/2022-06/Headshot%202022.JPG?itok=KYKoui1E",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "HI": [
+  {
+   "id": "c7e5e0d4-7a5d-42dc-a3cc-d7b54b1dc51b",
+   "name": "Josh Green",
+   "party": "Democrat",
+   "start": "2022-12-05",
+   "image": "https://governor.hawaii.gov/wp-content/uploads/2023/02/governor_green_-046-scaled.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "IA": [
+  {
+   "id": "3895278c-5226-4b70-bce0-d2ac15b3bce1",
+   "name": "Kim Reynolds",
+   "party": "Republican",
+   "start": "2017-05-24",
+   "image": "https://governor.iowa.gov/sites/default/files/images/2025-01/DSC_6655-Edit.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "ID": [
+  {
+   "id": "7b647b3d-a3e6-47b3-91b2-a26f0f7f711c",
+   "name": "Brad Little",
+   "party": "Republican",
+   "start": "2019-01-07",
+   "image": "https://gov.idaho.gov/wp-content/uploads/2018/12/Brad-Little.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "IL": [
+  {
+   "id": "db3adc7a-d2f8-4e61-a017-bf5d3804ba33",
+   "name": "J. B. Pritzker",
+   "party": "Democrat",
+   "start": "2019-01-14",
+   "image": "https://www2.illinois.gov/sites/gov/about/PublishingImages/governor-pritzker-headshot.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "IN": [
+  {
+   "id": "bdc262d7-ce67-4fd1-a96d-f92059ac0dfd",
+   "name": "Mike Braun",
+   "party": "Republican",
+   "start": "2025-01-13",
+   "image": "http://iga.in.gov/legislative/2017/portraits/legislator_mike_braun_1",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "KS": [
+  {
+   "id": "2654d836-700f-464d-a0dd-81cb0bd77b9e",
+   "name": "Laura Kelly",
+   "party": "Democrat",
+   "start": "2019-01-14",
+   "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Laura_Kelly_official_photo.jpg/960px-Laura_Kelly_official_photo.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "KY": [
+  {
+   "id": "c7dbc1b4-67fb-4bb2-b1c5-cc5ef9356a5a",
+   "name": "Andy Beshear",
+   "party": "Democrat",
+   "start": "2019-12-10",
+   "image": "https://governor.ky.gov/PublishingImages/Governor-Beshear_Official-Picture.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "LA": [
+  {
+   "id": "90d9e851-bec3-4bde-b883-bfa43d63194f",
+   "name": "Jeff Landry",
+   "party": "Republican",
+   "start": "2024-01-08",
+   "image": "https://gov.louisiana.gov/assets/images/2024/JL-Headshot/Jeff-Landry-Headshot.jpeg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MA": [
+  {
+   "id": "d90a06b9-0edf-4fda-a823-4247987244dc",
+   "name": "Maura Healey",
+   "party": "Democrat",
+   "start": "2023-01-05",
+   "image": "https://www.mass.gov/files/styles/570x/public/2023-01/PRINTFINAL-Shopper-Maura_Healey_201R_0.jpg?itok=SjMD6nD2",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MD": [
+  {
+   "id": "a6a4f3ad-59c0-471c-8fd3-ea06a8e21a87",
+   "name": "Wes Moore",
+   "party": "Democrat",
+   "start": "2023-01-18",
+   "image": "https://cdn.maryland.gov/maryland-cms/prod/governor/s3fs-public/images/2026-04/gov%201st%20size.png",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "ME": [
+  {
+   "id": "3a068db0-d252-4bf9-929d-feb15cb84087",
+   "name": "Janet Mills",
+   "party": "Democrat",
+   "start": "2019-01-02",
+   "image": "https://www.maine.gov/portal/img/official-3.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MI": [
+  {
+   "id": "9b425a88-36ae-439c-b2f9-8da167b9ff27",
+   "name": "Gretchen Whitmer",
+   "party": "Democrat",
+   "start": "2019-01-01",
+   "image": "https://www.michigan.gov/whitmer/-/media/Project/Websites/Whitmer/Images/About/Governor-Bio/GovWhitmerPortMaster_8x10.jpg?rev=79becb7ee8ea4ac580070d2a6c255473",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MN": [
+  {
+   "id": "aba9f63e-b8ee-4515-acac-af7a63a4d1ec",
+   "name": "Tim Walz",
+   "party": "Democrat",
+   "start": "2019-01-07",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MO": [
+  {
+   "id": "b1263b48-7df4-443c-8a71-41abc892bd7e",
+   "name": "Mike Kehoe",
+   "party": "Republican",
+   "start": "2025-01-13",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MS": [
+  {
+   "id": "3c19275b-6e87-43fa-83fa-ced52c9119bf",
+   "name": "Tate Reeves",
+   "party": "Republican",
+   "start": "2020-01-14",
+   "image": "https://governorreeves.ms.gov/wp-content/uploads/headshot-governor-tate-reeves_R.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "MT": [
+  {
+   "id": "c40b88ef-ba7b-415f-a6d4-581bfecf0ea7",
+   "name": "Greg Gianforte",
+   "party": "Republican",
+   "start": "2021-01-04",
+   "image": "https://governor.mt.gov/_images/portrait_gianforte.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NC": [
+  {
+   "id": "0a494878-c7fd-4a6a-8b82-3eb681e3fe6e",
+   "name": "Josh Stein",
+   "party": "Democrat",
+   "start": "2025-01-01",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "ND": [
+  {
+   "id": "482e4b71-bc8b-4c9e-80a5-bc2c51e90aa0",
+   "name": "Kelly Armstrong",
+   "party": "Republican",
+   "start": "2024-12-15",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NE": [
+  {
+   "id": "c67c3ac8-3260-44d7-b419-3d8210c4f0bd",
+   "name": "Jim Pillen",
+   "party": "Republican",
+   "start": "2023-01-05",
+   "image": "https://governor.nebraska.gov/about-governor-jim-pillen",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NH": [
+  {
+   "id": "3eabef50-7d86-44cf-87db-8c549d2d21bd",
+   "name": "Kelly Ayotte",
+   "party": "Republican",
+   "start": "2025-01-09",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NJ": [
+  {
+   "id": "d0bf3dce-c5b7-4f9f-a4e2-9637582299ac",
+   "name": "Mikie Sherrill",
+   "party": "Democrat",
+   "start": "2026-01-20",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NM": [
+  {
+   "id": "cb607080-ff7b-48c8-acf4-0180e6e2f999",
+   "name": "Michelle Lujan Grisham",
+   "party": "Democrat",
+   "start": "2019-01-01",
+   "image": "https://www.sos.state.nm.us/wp-content/uploads/2019/06/Michelle-Lujan-Grisham.png",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NV": [
+  {
+   "id": "d2c166cc-f53f-491d-9c4a-6c3fc68274fe",
+   "name": "Joe Lombardo",
+   "party": "Republican",
+   "start": "2023-01-02",
+   "image": "https://gov.nv.gov/uploadedImages/gov2022nvgov/content/AboutUs/Governor%20Joe%20Lombardo_Official%20Photo_600px.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "NY": [
+  {
+   "id": "ccdd914d-9853-4fd2-9a80-ce6c962cdd18",
+   "name": "Kathy Hochul",
+   "party": "Democrat",
+   "start": "2021-08-24",
+   "image": "https://www.governor.ny.gov/sites/default/files/styles/square_extra_large/public/2021-08/GovKathyHocul_FeatureBio_Photo.png?h=00546c34&itok=Sdxjp4cd",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "OH": [
+  {
+   "id": "37478cd9-ed21-43f7-b2cc-578df43ad32d",
+   "name": "Mike DeWine",
+   "party": "Republican",
+   "start": "2019-01-14",
+   "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3c/Gov-Mike-DeWine.jpg/960px-Gov-Mike-DeWine.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "OK": [
+  {
+   "id": "b4b14ac3-5ee6-4404-a4fc-ec6ea805ac90",
+   "name": "Kevin Stitt",
+   "party": "Republican",
+   "start": "2019-01-14",
+   "image": "https://oklahoma.gov/content/dam/ok/en/governor/images/gov-stitt-official-photo.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "OR": [
+  {
+   "id": "c136922d-c34a-4b53-a56b-2201b139d469",
+   "name": "Tina Kotek",
+   "party": "Democrat",
+   "start": "2023-01-09",
+   "image": "https://www.oregon.gov/gov/headshots/meet-tina-image-2000px.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "PA": [
+  {
+   "id": "ac7497c7-0a0d-495f-98ce-75dedbfeb0c7",
+   "name": "Josh Shapiro",
+   "party": "Democrat",
+   "start": "2023-01-17",
+   "image": "https://s7d9.scene7.com/is/image/statepa/headshot?ts=1706910357175&dpr=off",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "RI": [
+  {
+   "id": "7ca005d1-05b8-4ce2-80b4-04ff7acaa59e",
+   "name": "Dan McKee",
+   "party": "Democrat",
+   "start": "2021-03-02",
+   "image": "https://governor.ri.gov/sites/g/files/xkgbur236/files/styles/max_1300x1300/public/2021-08/Gov.%20Dan%20Mckee%20Headshot%20July%202021_1.jpg?itok=W6R-LV-G",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "SC": [
+  {
+   "id": "333130a9-ecba-4992-b223-d2af0c9f2a06",
+   "name": "Henry McMaster",
+   "party": "Republican",
+   "start": "2017-01-24",
+   "image": "https://governor.sc.gov/sites/governor/files/Documents/Images/newsImage_0.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "SD": [
+  {
+   "id": "b41fff76-c4dd-4e5c-b7f5-c6480a6b1710",
+   "name": "Larry Rhoden",
+   "party": "Republican",
+   "start": "2025-01-25",
+   "image": "https://governor.sd.gov/img/Governor-Rhoden-header.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "TN": [
+  {
+   "id": "d94cf7a2-1ba6-46f2-bdbf-54ace20b8dfc",
+   "name": "Bill Lee",
+   "party": "Republican",
+   "start": "2019-01-19",
+   "image": "https://www.tn.gov/content/dam/tn/governorsoffice-documents/governorlee-images/lee_portraits_2.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "TX": [
+  {
+   "id": "d73f10ee-69f2-4ca8-ac00-405c453a62d7",
+   "name": "Greg Abbott",
+   "party": "Republican",
+   "start": "2015-01-20",
+   "image": "https://gov.texas.gov/uploads/images/general/2015-GovernorAbbott-Portrait.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "UT": [
+  {
+   "id": "52dd3ff2-e7a2-458e-b8f1-797fdab69e4a",
+   "name": "Spencer Cox",
+   "party": "Republican",
+   "start": "2021-01-04",
+   "image": "http://site.utah.gov/governor-cox/wp-content/uploads/sites/52/2022/02/DSC08566-2-683x1024.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "VA": [
+  {
+   "id": "30e93a95-5457-4263-96f9-2ea38017a253",
+   "name": "Abigail Spanberger",
+   "party": "Democrat",
+   "start": "2026-01-17",
+   "image": null,
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "VT": [
+  {
+   "id": "f3e613ff-3cd6-4b2c-b268-f6460d029f05",
+   "name": "Phil Scott",
+   "party": "Republican",
+   "start": "2017-01-05",
+   "image": "https://www.vermont.gov/themes/custom/vt2018/images/governor.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "WA": [
+  {
+   "id": "117499b6-79e9-4eaf-827d-59c0ed14b7c0",
+   "name": "Bob Ferguson",
+   "party": "Democrat",
+   "start": "2025-01-09",
+   "image": "https://governor.wa.gov/sites/default/files/styles/max_650x650/public/2025-01/Bob%20Bio%20Headshot%20banner%20width.JPG",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "WI": [
+  {
+   "id": "44ad52d1-4ba8-4ca2-b1e1-cda1621a0bc7",
+   "name": "Tony Evers",
+   "party": "Democrat",
+   "start": "2019-01-07",
+   "image": "https://evers.wi.gov/PublishingImages/Pages/About_Tony/Governor.png",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "WV": [
+  {
+   "id": "cf5ab5dc-33c4-4d93-a810-f42cd6f98f5d",
+   "name": "Patrick Morrisey",
+   "party": "Republican",
+   "start": "2025-01-13",
+   "image": "https://governor.wv.gov/sites/default/files/2024-12/morrissey.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ],
+ "WY": [
+  {
+   "id": "d832b435-0a83-49ba-abd8-6ce265eb52ef",
+   "name": "Mark Gordon",
+   "party": "Republican",
+   "start": "2019-01-07",
+   "image": "https://governor.wyo.gov/assets/markgordon-B8-zFG2R.jpg",
+   "firstSeen": "2026-11-15",
+   "lastSeen": "2026-11-15"
+  }
+ ]
+}

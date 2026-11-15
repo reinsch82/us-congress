@@ -22,7 +22,13 @@ governors per state. Its data, `data/governors.json`, is built daily by `scripts
 - Jacob Kaplan's [United States Governors 1775–2020](https://github.com/jacobkap/governors) (ODbL, from National Governors Association data):
   years in office where Wikidata has no dates or misses a term, and party per year for governors with several parties.
   Terms from this source only have a year and are marked “year only”.
-- [Open States](https://github.com/openstates/people) (CC0): today's governors. The snapshot is only updated if all 50 match.
+- [Open States](https://github.com/openstates/people) (CC0): today's governors. Every run records them in
+  `data/governors-observed.json` (who, party, Open States' start date, first and last day seen). That gives this site its own
+  day-by-day record, and a new governor appears on the page before Wikidata has them.
+
+The build also compares with the previous snapshot. If a term disappears from the sources or loses its exact dates, the
+previous version is kept for up to 60 days and the workflow logs a warning. After that the change is accepted, so genuine
+corrections still come through. The snapshot is only written if every state has exactly one governor today, the one Open States lists.
 
 Because part of it comes from Kaplan's dataset, `data/governors.json` is available under the
 [ODbL](https://opendatacommons.org/licenses/odbl/1-0/). A few gaps remain where neither source has a governor; corrections made in
