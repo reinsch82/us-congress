@@ -103,8 +103,11 @@ function photoOf(id) {
 
 function dateRange(t) {
   const start = t.startPrecision === 'year' ? fmtYear(t.s) : fmtShort(t.s);
-  const end = t.e === Infinity || t.e > today ? 'today' : (t.endPrecision === 'year' ? fmtYear(t.e) : fmtShort(t.e));
-  return `${start} – ${end}`;
+  // Governors-elect are in the data with their inauguration date.
+  if (t.s > today) return `takes office ${start}`;
+  if (t.e === Infinity) return `${start} – today`;
+  const end = t.endPrecision === 'year' ? fmtYear(t.e) : fmtShort(t.e);
+  return t.e > today ? `${start} – ${end} (end of term)` : `${start} – ${end}`;
 }
 
 function describe(st, day) {
